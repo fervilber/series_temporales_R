@@ -159,6 +159,7 @@ Haga corresponder los gráficos de ACF que se muestran (A-D) con sus gráficos d
 1-B, 2-A, 3-D, 4-C
 ![](imagenes/comparar_graficas_ACF.png)
 
+<<<<<<< HEAD
 ##Precios de las acciones y ruido blanco
 Como aprendió en el video, el ruido blanco es un término que describe datos puramente aleatorios. Puede realizar una prueba de Ljung-Box utilizando la siguiente función para confirmar la aleatoriedad de una serie; un valor p mayor que 0.05 sugiere que los datos no son significativamente diferentes del ruido blanco.
 
@@ -256,4 +257,6 @@ ausbeer %>% snaive(16) %>% checkresiduals()
 # Do they look like white noise (TRUE or FALSE)
 beerwn <- FALSE
 ```
+=======
+>>>>>>> 833642c10e2deaf6035ea608946c559c784d50ed
 
