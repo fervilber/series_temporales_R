@@ -39,8 +39,9 @@ Lo habitual es que una serie temporal sea mezcla y convinación de estos comprot
 
 Existen funciones en R que descomponen una serie temporal $$X_t$$ en los 3 componentes principales  $$X_t=T_t+E_t+A_t$$ (tendencia + estacionalidad + ruido). Una de estas funciones es `sdl()` del paquete base y también la función `decompose()`.
 
-Ejemplo: descomponemos los componentes estacionalidad + tendencia + ruido de la serie de cotizaciones del oro entre 1980 y 1985 almacenanda en la variable `gold`
-```{r}
+Ejemplo: descomponemos los componentes estacionalidad + tendencia + ruido de la serie de cotizaciones del oro entre 1980 y 1985 almacenanda en la variable `gold`.
+
+```{r eval=FALSE}
     require(forecast) # la serie ejem: gold está en esta libreria
     # Aplicamos funcion de descomposición sdl()
     des.oro<-stl(gold,s.window = "periodic" )
@@ -48,9 +49,9 @@ Ejemplo: descomponemos los componentes estacionalidad + tendencia + ruido de la 
     plot(des.oro, main="Descomposición del precio del oro")
     #plot(decompose(gold))
 ```
-
+![descomposicion de series]("imagenes/descomposicion1.png")
 ### Estacionariedad 
-Esta característica de las series incica si sus propiedades cámbian o no cambian con el tiempo, es decir si por ejemplo la media, la varianza o la covarianza son constantes en la serie o por el contrario cambian a lo largo de las observaciones de forma significativa.
+Esta característica de las series incica si sus propiedades cámbian o no cambian con el tiempo, es decir si por ejemplo la media, la varianza o la covarianza son constantes en la serie o por el contrario cambian a lo largo de las observaciones de forma significativa. En resumen, una serie estacionaria es aquella cuyas propiedades (media, varianza, covarianza) no dependen del periodo de observación en el que se miden. 
 
 No confuncir con estacional con estacionario, pues son conceptos diferentes, uno indica ciclos y el otro es una propiedad de los datos.
 
@@ -70,9 +71,9 @@ Las graficas asociadas a los métodos espectrales son el periodograma o espectro
 
 ```{r}
     acf(sunspot.year)
-    spectrum(sunspot.year)+
-#abline(h=0.1)
-#periodogram(sunspot.year)
+    spectrum(sunspot.year)
+
+    # periodogram(sunspot.year)
 ```
 
 ### Autocorrelación
@@ -445,7 +446,7 @@ Vamos a poner un ejemplo de lectura de datos desde internet de la web de datos a
     rutafichero<-"https://datosabiertos.carm.es/odata/Agricultura/IMIDA_Diario_MU62.csv"
     
     # Leemos los datos en formato csv directamente desde la url anterior
-    datos_meteo<-read.csv(fileurl)
+    datos_meteo<-read.csv(rutafichero)
     # vemos la estructura de los datos leídos
     str(datos_meteo)
     
@@ -467,6 +468,7 @@ Existen varias opciones para trabajar con series temporales. La más simple es u
 
 
 ```{r Series temporales}
+    require(forecast)
     # Creamos una serie de 24 datos aleatorios para trabajar
     # como suma acumulada de una normal x10
     datos <- cumsum(rnorm(24)*10)
@@ -553,6 +555,8 @@ En el ejemplo siguiente vermos muchas formas de usar `xts`, por ejemplo para ext
     head(xts1)    
     
     # La forma habitual de crear una serie xts será así:
+    require(rio)
+      dat.bit<-import("bitcoinity_data.csv")
       xts1 <- xts(dat.bit$price, order.by=as.Date(dat.bit$Time, "%Y-%m-%d %R"))
     
     # extraemos solo lo datos de xts 
@@ -602,7 +606,7 @@ El primer paso para usar `Quandl` es registrar un nuevo usuario en el sitio web.
 La gente `Quandl` ha desarrollado una API especifica para R bastante sencilla de usar. Hay muchos datos libres,como por ejemplo todos los datos economicos mundiales de la [FRED](https://fred.stlouisfed.org/categories). Para obtener el listado completo de datos que ofrece la librería podemo ir a su web y buscar el nombre de la serie especifica que buscamos <https://www.quandl.com/data/>. Veamos un ejemplo.
 
 
-```{r}
+```{r eval=FALSE}
     # install.packages("Quandl")
     require(Quandl)
     # creamos el API KEY para la conexión
@@ -616,6 +620,9 @@ La gente `Quandl` ha desarrollado una API especifica para R bastante sencilla de
 
     plot(poblacionESP, main="Evolución de la población en España",type= "l",col="red",lwd=2)
 ```
+
+![Poblacion de España]("imagenes/ESP_poblacion.png")
+
 La web de `Quandl` incluso facilita el propio script de R para el dato que buscas, por ejemplo mira aquí: <https://www.quandl.com/data/FRED/GDPPOT-Real-Potential-Gross-Domestic-Product>
 
 
@@ -745,7 +752,7 @@ De esta página hemos descargado el fichero *bitcoinity_data.csv* con los precio
 
 ```{r}
     #Leemos el fichero
-    # usando library(rio)
+    require(rio)
     dat.bit<-import("bitcoinity_data.csv")
     plot.ts(dat.bit$price)
     
@@ -849,7 +856,7 @@ Existen multitud de librerías gráficas en R. Para usar con serie temporales su
 
 Las funciones `chartSeries` y `barChart` de la librería `quandmod`, o la función `chart.TimeSeries` de la librería  `PerformanceAnalytics` suelen dar buenos resultados vamos a ver ejemplos para nuestro curriculo.
 
-```{r}
+```{r eval=FALSE}
     # Ejemplo de graficas
     # Librería quantmod
     require(quantmod)
@@ -865,6 +872,10 @@ Las funciones `chartSeries` y `barChart` de la librería `quandmod`, o la funci�
     require(dygraphs)
     dygraph(datosESP)
 ```
+
+![chartseries]("imagenes/chartseries.png")
+
+![chart.TimeSeries]("imagenes/chart.TimeSeries.png")
 
 ## Gráficas estacionales
 
@@ -1051,7 +1062,7 @@ Además la clase principal de objetos en el paquete `forecast` contiene muchas f
 
     # Pintamos el pronóstico y el resumen
     plot(p.simple)
-    summary(prono.goog)
+    summary(p.simple)
 
 ```
 
@@ -1490,7 +1501,7 @@ El método de tendencia local de Holt se implementa en la función `holt()`, es 
 La función `hw()` produce pronósticos usando el método de Holt-Winters específico para cualquier serie estacional. Hay que especificar el método elegido de pronostico si aditivo  multiplicativo. El primero añade ciclos iguales a los actuales y el segundo son ciclos ampliados.
 
 
-```{r}
+```{r eval=FALSE}
     # Trabajaremos con la serie del oro de ejemplo
     # queremos un pronostico a 3 años
     fc <- hw(gold, seasonal = "additive", h =12*3)
@@ -1501,6 +1512,9 @@ La función `hw()` produce pronósticos usando el método de Holt-Winters espec�
     checkresiduals(fc)
  
 ```
+
+![prediccion de oro con holtwinter]("imagenes/holtwinter.png")
+
 
 ## Predicción automática con `ets`
 La función ETS (alisamiento exponencial), proporciona una forma completamente automática de realizar pronósticos para una amplia gama de series de temporales. La llamada de la funcion es algo diferente, pues `ets()` ajusa los parámetros del modelo, pero para realizar el pronóstico. Digamos que selecciona previamente qué modelo elegir que se ajuste mejor, y después lousaremos como un función más a través de la llamada a `forecast()`.
@@ -1553,179 +1567,260 @@ Como vemos el pronostico de `ets()` no siempre es bueno, incluso en series cícl
 
 ```
 
-# TRANSFORMACIONES DE SERIES TEMPORALES
+# TRANSFORMACIONES y DESCOMPOSICIÓN DE SERIES TEMPORALES
 
-El proposito de la transformación de series temporales es simplificar los patrones en los datos  y quitar las fuentes de variación evidentes. Se trata en definitiva de poder aplicar los métodos de pronóstico estadístico y por tanto de obtener una serie estacionaria sobre la que trabajar mejor.
+El propósito de la transformación de series temporales es simplificar los patrones en los datos  y quitar las fuentes de variación evidentes. Se trata en definitiva, de poder aplicar los métodos de pronóstico estadístico y por tanto de obtener con la transformación una serie estacionaria sobre la que trabajar mejor.
 
-Las transformaciónes de las series temporales extraen la esencia de los datos, y permiten analizar los componentes de tendencia, ciclo y variabilidad aparte, dando una mejor predicción.
+Las transformaciónes de las series temporales extraen la esencia de los datos, y permiten analizar los componentes de tendencia, ciclo y variabilidad de forma independiente y mejorar la predicción.
 
-Vamos a ver algunas transformaciones en los apartados siguientes.
+La descomposición es la separación en componentes de una serie temporal,buscando tambien la simplificación del analisis en grupos sencillos. La principal descomposición que realizamos es extraer de la serie original las componentes de tendencia, ciclo y remanente o parte que no se puede explicar.
 
-## Transformaciones de Box-Cox para series de tiempo
-La transformación de Box-Cox se usa para estabilizar la *varianza* de la serie.
+## Diferenciación
+La diferrenciación de una serie consiste en tranformar la original en otra con las diferencias o incrementos en cada x pasos. Es decir, la resta de dos valores consecutivos de la serie. Con esto conseguimos en muchos casos **eliminar la tendencia de la serie** y obtener una variable estacionaria.
+La diferenciación elimina patrones sistemáticos como tendencia y estacionalidad de los datos. 
 
-a10 precargada, que contiene las ventas mensuales de medicamentos antidiabéticos en Australia desde 1991-2008.
+La función `diff()` aplicada sobre una serie temporal nos devuelve la serie diferenciada. Como veremos en el siguiente ejemplo en la serie diferenciada la gráfic de acf cae inmediatamente a valores próximos a cero, lo que indica que se trata de una serie estacionaria. Por contra las series no estacionarias tienen valores altos y positivos como la serie original. 
 
-En este ejercicio, deberá experimentar para ver el efecto del argumento lambda (λ) en la transformación. Tenga en cuenta que los pequeños cambios en λ hacen poca diferencia en la serie resultante. Desea encontrar un valor de λ que haga que las fluctuaciones estacionales sean aproximadamente del mismo tamaño en toda la serie.
+```{r eval=FALSE}
+    require(quantmod)
+    require(ggplot2) 
+    # leemos los ultimos 10 años del ibex en diarios
+    acc1 <- getSymbols("^IBEX", 
+                       src ="yahoo",
+                       periodicity = "daily",# "monthly",
+                       warning= "FALSE",
+                       adjust = TRUE,
+                       auto.assign=FALSE)
+    
+    acc.dif<-diff(Cl(acc1))
+    #length(acc.dif)
+    acc.dif<-na.omit(acc.dif)
+    acc1<-na.omit(Cl(acc1))
+    png('imagenes/grafibex.png',height = 500, width = 600, units = "px")
+        par(mfrow=c(2,2),mar=c(3,3,2,2))
+        #spectrum(acc.dif)
+        plot.zoo(acc1,main="IBEX 35")
+        acf(acc1)
+        plot.zoo(acc.dif,main="Diff del IBEX 35")
+        acf(acc.dif, ylim=c(-0.1,0.1))
+    dev.off()
+    
+    Box.test(acc.dif, lag=10, type="Ljung-Box")
 
-Recuerde en el video que el rango recomendado para valores lambda es $$-1≤λ≤1$$.
-
-INSTRUCCIONES
-100 XP
-Trace la serie a10 y observe la varianza creciente a medida que aumenta el nivel de la serie.
-Intente transformar la serie usando BoxCox () en el formato del código de muestra. Experimente con cuatro valores de lambda: 0.0, 0.1, 0.2 y 0.3. ¿Puedes determinar qué valor lambda estabiliza aproximadamente la varianza?
-Ahora compare su valor elegido de lambda con el que devuelve BoxCox.lambda ().
-Take Hint (-30 XP)
-
-```{r}
-# Plot the series
-autoplot(a10)
-
-# Try four values of lambda in Box-Cox transformations
-a10 %>% BoxCox(lambda = 0.0) %>% autoplot()
-a10 %>% BoxCox(lambda = 0.1) %>% autoplot()
-a10 %>% BoxCox(lambda = 0.2) %>% autoplot()
-a10 %>% BoxCox(lambda = 0.3) %>% autoplot()
-
-# Compare with BoxCox.lambda()
-BoxCox.lambda(a10) 
-# sale 0.13
-```
-## Diferenciación no estacional para estacionariedad
-La diferenciación es una forma de hacer una serie temporal estacionaria; esto significa que elimina cualquier patrón sistemático como tendencia y estacionalidad de los datos. Una serie de ruido blanco se considera un caso especial de una serie temporal estacionaria.
-
-Con los datos no estacionales, utiliza las diferencias de lag-1 para modelar los cambios entre las observaciones en lugar de las observaciones directamente. Has hecho esto antes usando la función diff ().
-
-En este ejercicio, usará los datos de wmurders precargados, que contienen la tasa anual de asesinatos de mujeres en los EE. UU. De 1950-2004.
-
-INSTRUCCIONES
-100 XP
-Trace los datos de wmurders y observe cómo ha cambiado con el tiempo.
-Ahora, trace los cambios anuales en la tasa de homicidios usando la función mencionada anteriormente y observe que estos son mucho más estables.
-Finalmente, trace el ACF de los cambios en la tasa de homicidios usando una función que aprendió en el primer capítulo.
-Take Hint (-30 XP)
-
-```{r}
-# Plot the US female murder rate
-autoplot(wmurders)
-
-# Plot the differenced murder rate
-wmurders %>% diff()%>%autoplot()
-
-# Plot the ACF of the differenced murder rate
-ggAcf(diff(wmurders))
 ```
 
-## Diferenciación estacional para estacionariedad
-Con los datos estacionales, a menudo se toman diferencias entre las observaciones en la misma temporada de años consecutivos, en lugar de en períodos consecutivos. Por ejemplo, con datos trimestrales, uno tomaría la diferencia entre Q1 en un año y Q1 en el año anterior. Esto se llama diferenciación estacional (seasonal differencing)
+![Diferenciación de la serie daria del IBEX y autocorrelación](imagenes/grafibex.png)
 
-A veces es necesario aplicar las diferencias estacionales y las diferencias lag-1 a la misma serie, por lo tanto, calculando las diferencias en las diferencias.
+Cuando la diferenciación de un retardo no proporciona una serie estacionaria, puede probarse la segunda derivada - `diff(diff(serie))`- o también la diferenciación por retardos diferentes por ejemplo para desestacionalizar una serie. Si el ciclo es anual, puede hacerse `diff(serie, lag=12)` por ejemplo.
 
-En este ejercicio, usará diferenciación y transformaciones simultáneamente para hacer que una serie temporal parezca estacionaria. El conjunto de datos aquí es h02, que contiene 17 años de ventas mensuales de corticosteroides en Australia. Se ha cargado en su espacio de trabajo.
+Para saber qué intervalo es el adecuado para diferenciar existen algunos test como el `kpss`.
 
-INSTRUCCIONES
-100 XP
-Trace los datos para observar la tendencia y la estacionalidad.
-Tome el registro () de los datos de h02 y luego aplique la diferenciación estacional usando un valor de retardo apropiado en diff (). Asignar esto a difflogh02.
-Trace los datos resultantes registrados y diferenciados.
-Debido a que difflogh02 todavía no se ve estacionario, tome otra diferencia lag-1 aplicando diff () a sí mismo y guárdelo en ddifflogh02. Trace la serie resultante.
-Grafique el ACF de la serie final ddifflogh02 usando la función apropiada.
-Take Hint (-30 XP)
+```{r eval=FALSE}
+    library(urca)
+    acc1 %>% ur.kpss() %>% summary()
+
+    # Calculo del lag apropiado
+    ndiffs(acc1)
+```
+```{r eval=FALSE}
+####################### 
+# KPSS Unit Root Test # 
+####################### 
+
+Test is of type: mu with 9 lags. 
+
+Value of test-statistic is: 8.4046 
+
+Critical value for a significance level of: 
+                10pct  5pct 2.5pct  1pct
+critical values 0.347 0.463  0.574 0.739
+```
+El valor del test para la serie original de 8.4046 es muy alto indicando que habría que diferenciar la serie. PAra ver que valor de retardo lag de diferencia es apropiado podemos usar la función `ndiffs(serie)`.
+
+
+
+## Transformaciones de Box-Cox 
+La transformación de Box-Cox se usa para estabilizar la *varianza* de la serie, esto es, para que las variaciones sean comparables en escala a lo largo del tiempo. Se aplica por tanto en series estacionales o con ciclos. 
+La función `BoxCox()` tiene dos argumentos principales, la serie origen y `lambda`. El calculo de lambda que hace a la serie menos variable puede hacerse de forma automática con la función `BoxCox.lambda(serie)`. 
+
+Por ejemplo, en la serie `AirPassengers` vemos ciclos estacionales que además crecen con el tiempo, para estabilizar la varianza aplicamos al ejemplo una transformación Box COx con lambda=-0.2947156, calculado automáticamente por la función BoxCox.lambda. Como vemos en las gráficas los ciclo resultantes son más iguales.
 
 ```{r}
-# Plot the data
-autoplot(h02)
+    # Serie de num de pasajeros
+    autoplot(AirPassengers) 
 
-# Take logs and seasonal differences of h02
-difflogh02 <- diff(log(h02), lag = 12)
+    # Cálculo de lambda=BoxCox.lambda(AirPassengers)
+    autoplot(BoxCox(AirPassengers,lambda=BoxCox.lambda(AirPassengers)))
 
-# Plot difflogh02
-autoplot(difflogh02)
-
-# Take another difference and plot
-ddifflogh02 <- diff(difflogh02, lag = 1)
-autoplot(ddifflogh02)
-
-# Plot ACF of ddifflogh02
-ggAcf(ddifflogh02)
 ```
-##  ARIMA Modelos ARIMA automáticos para series temporales no estacionales
-En el video, aprendió que la función auto.arima () seleccionará un modelo apropiado de media móvil integrada autorregresiva (ARIMA) dada una serie temporal, tal como lo hace la función ets() para los modelos ETS. La función de summary() puede proporcionar algunas ideas adicionales:
 
-> # p = 2, d = 1, p = 2
-> resumen (ajuste)
+## Logaritmo
+Una de las transformaciones clasicas de la series con comportamientos exponenciales o de gran variabilidad es el logaritmo. Haciendo un log de la serie conseguimos cambiar las tendencias exponenciales a lineales y las variaciones e vuelven más uniformes por lo que podemos trabajar con las series de manera habitual.
 
-Serie: usnetelec
-ARIMA (2,1,2) con deriva
-...
-En este ejercicio, elegirá automáticamente un modelo ARIMA para la serie austa precargada, que contiene el número anual de visitantes internacionales a Australia de 1980-2015. A continuación, comprobará los residuos (recuerde que un valor p mayor que 0,05 indica que los datos se asemejan al ruido blanco) y genere algunos pronósticos. Aparte de la función de modelado, esto es idéntico a lo que hizo con la previsión de ETS.
-
-INSTRUCCIONES
-100 XP
-INSTRUCCIONES
-100 XP
-Ajuste un modelo ARIMA automático a la serie austa usando la función recién introducida. Guarde esto para encajar.
-Use la función apropiada para verificar que los residuos del modelo resultante se vean como ruido blanco. Asignar TRUE (si los residuos se ven como ruido blanco) o FALSE (si no lo hacen) a residualsok.
-Aplique un resumen () al modelo para ver los coeficientes ajustados.
-En función de los resultados que utilizan el resumen(), ¿cuál es el valor AICc con dos decimales? ¿Cuántas diferencias se usaron? Asignar estos a AICc y d, respectivamente.
-Finalmente, usando el operador de tubería, trace los pronósticos de los próximos 10 períodos del modelo elegido.
-Take Hint (-30 XP)
+Vamos a ver los resultados para una serie como el precio del Bitcoin con eneorme variación de escala
 
 ```{r}
-# Fit an automatic ARIMA model to the austa series
-fit <- auto.arima(austa)
+    # Intalamos el paquete
 
-# Check that the residuals look like white noise
-checkresiduals(fit) #p-value = 0.9173
-residualsok <- TRUE
+    library(coindeskr) #R-Package connecting to Coindesk API
 
-# Summarize the model
-summary(fit)
-
-# Find the AICc value and the number of differences used 
-AICc <- -14.46
-d <- 1# ARIMA(0,1,1) with drift 
-
-# Plot forecasts of fit
-fit %>% forecast(h = 10) %>% autoplot()
+    # obtenemos los precios historicos del cambio BTC EUR
+    pBTC<-get_historic_price(currency = "USD", start = "2013-01-01" ,end = Sys.Date() )
+    plot.ts(pBTC)
+    plot.ts(log(pBTC))
+    
 ```
 
-## Pronóstico con modelos ARIMA
-El método automático en el ejercicio anterior eligió un ARIMA (0,1,1) con un modelo de deriva para los datos de *austa*, es decir, $$yt = c + yt-1 + θet-1 + et$$. Ahora experimentará con varios otros modelos ARIMA para que los datos vean qué diferencia hace a los pronósticos.
-
-La función Arima() se puede usar para seleccionar un modelo ARIMA específico. Su primer argumento, orden, se establece en un vector que especifica los valores de p, d y q. El segundo argumento, include.constant, es un booolean que determina si la constante c, o drift, debe incluirse. A continuación se muestra un ejemplo de una función de tubería que graficaría los pronósticos de usnetelec a partir de un modelo ARIMA (2,1,2) con deriva:
-
-> usnetelec%>%
-    Arima (orden = c (2,1,2), include.constant = TRUE)%>%
-    pronóstico ()%>%
-    autoplot ()
-En los ejemplos aquí, observe cómo los diferentes modelos afectan los pronósticos y los intervalos de predicción. Los datos de austa están listos para que los use en su espacio de trabajo.
-
-INSTRUCCIONES
-100 XP
-Trace los pronósticos de un modelo ARIMA (0,1,1) sin deriva.
-Trace los pronósticos de un modelo ARIMA (2,1,3) con deriva.
-Trace los pronósticos de un modelo ARIMA (0,0,1) con una constante.
-Trace los pronósticos de un modelo ARIMA (0,2,1) sin constante.
+Vamos a ver un ejemlo:
 
 ```{r}
-# Plot forecasts from an ARIMA(0,1,1) model with no drift
-austa %>% Arima(order = c(0,1,1), include.constant = FALSE) %>% forecast() %>% autoplot()
 
-# Plot forecasts from an ARIMA(2,1,3) model with drift
-austa %>% Arima(order = c(2,1,3), include.constant = TRUE) %>% forecast() %>% autoplot()
-
-# Plot forecasts from an ARIMA(0,0,1) model with a constant
-austa %>% Arima(order = c(0,0,1), include.constant = TRUE) %>% forecast() %>% autoplot()
-
-# Plot forecasts from an ARIMA(0,2,1) model with no constant
-austa %>% Arima(order = c(0,2,1), include.constant = FALSE) %>% forecast() %>% autoplot()
+    y<-ts(na.omit(log(pBTC)))
+    y1<- window(y, end =1600)
+    
+    autoplot(forecast(ets(y1),300), PI=F) + autolayer(window(y, start=1600))
 ```
+
+
+## Descomposición de series
+### `decompose`
+Es un método clásico para series con estacionalidad. Se puede aplicar con dos tipos, el aditivo y el multiplicativo, uno suma y otro divide la estacionalidad en proporción al valor observado de tendencia.
+El resultado de aplicar las funiones de descomposición de series `decompose()` es una terna de series formado por el componente de tendencia, el de ciclo y el que resta que podemos decir es el aleatorio.
+
+Veamos un ejemplo:
+
+```{r}
+AirPassengers %>% decompose(type="multiplicative") %>%
+  autoplot() + xlab("Year") +
+  ggtitle("Descomposición de la serie de pasajeros")
+```
+
+### `seasonal`
+Otro método de descomposición de series es el `X11` que en R está programado dentro del paquete `seasonal`. Tienen parecidas caracteristicas, pero aporta algunos gráficos interesantes que vamos a mostrar. Una de las novedades es que el componente estacional no es constante.
+
+```{r}
+    require(seasonal)
+    AirPassengers %>% seas(x11="") -> fit
+    
+    autoplot(fit) +
+  ggtitle("X11 decomposicion")
+    
+    
+    autoplot(AirPassengers, series="Datos") +
+        autolayer(trendcycle(fit), series="Tendendica")    +
+        autolayer(seasadj(fit), series="Estacional ajustada")    +
+        xlab("Año") + ylab("Pasajeros") +
+        ggtitle("Evolución de pasajeros - descomposición") +
+        scale_colour_manual(values=c("gray","blue","red"),
+             breaks=c("Datos","Estacional ajustada","Tendendica"))
+    
+    # otro grafico interesante
+    fit %>% seasonal() %>% ggsubseriesplot() + ylab("Temporada") 
+```
+El paquete `seasonal` da acceso a las series descompuestas con las funciones  `seasadj()`, `trendcycle()` and `remainder()` (estacional, tendencia y resto).
+
+### `stl`
+Como última alterntiva veremos la funcion `stl()` que también realiza la descomposción de una serie estacional, con la ventaja de que no solo es válido como las anteriores para series de ciclos mensuales, anuales o semanales, es una formulación más aseptica, y válida para cualquier frecuencia.
+
+Además permite que el componente estacional varíe en el tiempo, no como `decompose`, y es más robusto frente a outliers o valores fuera de rango, pero hay que tener cuidado con estas funciones, pues no tienen ajuste automatico a calendarios y por tanto en series con secuencias discontinuas como datos diarios de bolsa (donde faltan los fines de semana y festivos) hay -previamente- que hacer alguna transformación temporal.
+
+Los parámetros de la función son:
+
+ - *t.window* que controla la tendencia (indica el lag que se toma en consideración para la tendencia)
+ - *s.window* que controla el ciclo. (si se pone ="periodic" lo calcula automáticamente)
+ 
+```{r}
+AirPassengers %>%
+  stl(t.window=12, s.window="periodic", robust=TRUE) %>%
+  autoplot()
+```
+
+
+## Pronosticos sobre descomposiciones de series
+Una vez hemos realizado una descomposición de la serie que creemos adecuada, pordemos realizar pronosticos sobre los datos, y modular estos según cada componente de la descomposición. Esto es, podemos ejecutar un pronostico de tendencia sobre la parte de tendencia de la descomposición, y aplicarle luego la modulación que aporta la arte de estacionalidad.
+
+```{r}
+
+# creamos una descomposición de la serie gold 
+smodel<- stl(gold, s.window="periodic") 
+autoplot(smodel)
+# Creamos un pronostico con el metodo drif de la parte de estacionalidad ajustada de la serie descompuesta
+smodel %>% seasadj() %>%  rwf(24,drift=TRUE)  %>% autoplot()
+
+# Idem pronostico con el metodo drif de la parte de tendencia de la descomposición
+# para 12 meses
+smodel %>% trendcycle() %>%  rwf(12,drift=TRUE)  %>% autoplot()
+
+# lo mismo usandola función forecast
+smodel %>% forecast(method="rwdrift") %>% autoplot()
+# lo mismo usando la función stlf en la que hay que indicar el método de pronostico
+autoplot(stlf(gold, method='rwdrift'))
+
+
+#Podemos usar un modelo ets
+smodel<- ets(gold) 
+smodel %>% forecast() %>% autoplot()
+
+```
+
+
+# MODELOS ARIMA 
+
+Los modelos de regresión exponencial y los ARIMA (o modelos de media movil integrada autoregresiva) son los más ampliamente utilizados para el pronóstico de series temporales. Los primeros se basan en la tendencia y estacionalidad de los datos y los ARIMA en la autocorrelación de las serie.
+
+## AR
+Los modelos ARMA predicen los valores futuros mediante la combinación lineal de los valores pasados. Un modelos autoregresivo sigue la siguiente ecuación: $$y_t=c+a_1y_t_−1+a_2y_t_−2+ ⋯+a_ y_t−p+e_t$$
+
+## MA 
+Los modelos MA predicen valores futuros mediante la combinación lineal de los errores de pronostico pasados.
+
+## ARIMA 
+Combinando diferenciación con modelos autoregesivos con media movil tenermos los ARIMA. La nomeclatura de los modelos ARIMA(p,d,q) significa:
+
+- p= orden de la parte autorregresiva
+- d = grado de diferenciación del modelo
+- q = orden de la media movil
+
+Muchos de los modelos que hemos descrito son casos especiales de ARIMA:
+
+| ruido blanco| ARIMA(0,0,0) |
+| paseo aleatorio | ARIMA(0,1,0) |
+| paseo aleatorio con deriva | 	ARIMA(0,1,0) |
+| AR 	| ARIMA(p,0,0) |
+| MA | 	ARIMA(0,0,q) |
+
+Veamos un ejemplo de uso:
+
+```{r}
+    # Ajustamos un modelo ARIMA automáticamente  a la serie de oro
+    fit <- auto.arima(gold)
+    
+    # Calculamos los residuos y el resumen 
+    checkresiduals(fit) 
+    summary(fit)
+    
+    # Pintamos el pronostico para un año
+    fit %>% forecast(h = 12) %>% autoplot()
+```
+
+
+```{r eval=FALSE}
+# para un modelo concreto
+arima(lh, order = c(1,0,1))
+arima(USAccDeaths, order = c(0,1,1), seasonal = list(order = c(0,1,1)))
+
+autoplot(forecast(arima(lh, order = c(1,0,1))))
+
+    fit <- auto.arima(presidents)
+    fit %>% forecast(h = 12) %>% autoplot()
+    predict(fit, 3)
+```
+
 
 ## Comparando auto.arima () y ets () en datos no estacionales
 La estadística AICc es útil para seleccionar entre modelos en la misma clase. Por ejemplo, puede usarlo para seleccionar un modelo ETS o para seleccionar un modelo ARIMA. Sin embargo, no puede usarlo para comparar modelos ETS y ARIMA porque están en diferentes clases de modelos.
 
-En su lugar, puede usar la validación cruzada de series temporales para comparar un modelo ARIMA y un modelo ETS en los datos austa. Debido a que tsCV () requiere funciones que devuelven objetos de pronóstico, configurará algunas funciones simples que se ajusten a los modelos y devuelva los pronósticos. Los argumentos de tsCV () son una serie de tiempo, una función de pronóstico y un horizonte de pronóstico h. Examine este fragmento de código del segundo capítulo:
+En su lugar, puede usar la validación cruzada de series temporales para comparar un modelo ARIMA y un modelo ETS en los datos.  Debido a que tsCV () requiere funciones que devuelven objetos de pronóstico, configurará algunas funciones simples que se ajusten a los modelos y devuelva los pronósticos. Los argumentos de tsCV () son una serie de tiempo, una función de pronóstico y un horizonte de pronóstico h. Examine este fragmento de código del segundo capítulo:
 
 ```{r eval=FALSE}
 e <- matriz (NA_real_, nrow = 1000, ncol = 8)
@@ -1755,7 +1850,7 @@ Calcule el MSE con validación cruzada para cada clase de modelo y elimine los v
 Produzca y trace pronósticos a 10 años de los valores futuros de austa usando la mejor clase de modelo.
 Take Hint (-30 XP)
 
-```{r}
+```{r eval=FALSE}
 # Set up forecast functions for ETS and ARIMA models
 fets <- function(x, h) {
   forecast(ets(x), h = h)
@@ -1765,10 +1860,10 @@ farima <- function(x, h) {
 }
 
 # Compute CV errors for ETS as e1
-e1 <- tsCV(austa, fets, 1)
+e1 <- tsCV(AirPassengers, fets, 1)
 
 # Compute CV errors for ARIMA as e2
-e2 <- tsCV(austa, farima, 1)
+e2 <- tsCV(AirPassengers, farima, 1)
 
 # Find MSE of each model class
 mean(e1^2, na.rm = TRUE)
@@ -1796,7 +1891,7 @@ Resuma el modelo ajustado utilizando el método apropiado.
 Trace los pronósticos para los próximos 2 años utilizando el modelo ajustado. Establecer h en consecuencia.
 Take Hint (-30 XP)
 
-```{r}
+```{r eval=FALSE}
 # Check that the logged h02 data have stable variance
 h02 %>% log() %>% autoplot()
 
@@ -1829,7 +1924,7 @@ Ejecute el resumen () para fit1 y fit2 en su consola, y use esto para determinar
 Finalmente, utilizando el mejor modelo basado en AICc, trace sus pronósticos a 2 años. Establecer h en consecuencia.
 
 
-```{r}
+```{r eval=FALSE}
 # Find an ARIMA model for euretail
 fit1 <- auto.arima(euretail)
 
@@ -1861,7 +1956,7 @@ Tal como lo hizo con ejercicios anteriores, verifique que ambos modelos tengan r
 Produzca pronósticos para los datos restantes de ambos modelos como fc1 y fc2, respectivamente. Establezca h en el número total de trimestres en su conjunto de prueba. Tenga cuidado: la última observación en qcement no es el último trimestre del año.
 Usando la función de precisión (), encuentre el mejor modelo basado en el valor RMSE y guárdelo como mejor modelo.
 Take Hint (-30 XP)
-```{r}
+```{r eval=FALSE}
 # Use 20 years of the qcement data beginning in 1988
 train <- window(qcement, start =1988, end = c(2007,4))
 #autoplot(qcement)
@@ -1912,7 +2007,7 @@ Pronóstico del modelo ajustado que especifica los próximos 6 meses de gastos d
 Trace las predicciones fc y complete el código provisto para agregar una etiqueta x "Mes" y una etiqueta y "Ventas".
 Take Hint (-30 XP)
 
-```{r}
+```{r eval=FALSE}
 # Time plot of both variables
 autoplot(advert, facets = TRUE)
 
@@ -2323,7 +2418,7 @@ Frequency = 7
 53.000000 188.5128        31.2       0
 
 
-```{r}
+```{r eval=FALSE}
 # Time plots of demand and temperatures
 autoplot(elec[, c("Demand", "Temperature")], facets = TRUE)
 
@@ -2514,7 +2609,7 @@ Take Hint (-30 XP)
 1994 39975 40478 46895 46147 55011 57799 62450 63896 57784 53231 50354 38410
 1995 41600 41471 46287 49013 56624 61739 66600 60054
 
-```{r}
+```{r eval=FALSE}
 # Plot the gas data
 autoplot(gas)
 
