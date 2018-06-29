@@ -2,7 +2,9 @@
 title: "Series temporales en R"
 author: "Fernando Villalba Bergado"
 date: "24 de abril de 2018"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -1739,7 +1741,7 @@ AirPassengers %>%
 ## Pronosticos sobre descomposiciones de series
 Una vez hemos realizado una descomposición de la serie que creemos adecuada, pordemos realizar pronosticos sobre los datos, y modular estos según cada componente de la descomposición. Esto es, podemos ejecutar un pronostico de tendencia sobre la parte de tendencia de la descomposición, y aplicarle luego la modulación que aporta la arte de estacionalidad.
 
-```{r}
+```{r stl, eval=FALSE}
 
 # creamos una descomposición de la serie gold 
 smodel<- stl(gold, s.window="periodic") 
@@ -1763,6 +1765,15 @@ smodel %>% forecast() %>% autoplot()
 
 ```
 
+![autoplot(smodel)]("imagenes/stl1.png")
+
+![smodel %>% seasadj() %>%  rwf(24,drift=TRUE)  %>% autoplot()]("imagenes/stl2.png")
+
+![smodel %>% trendcycle() %>%  rwf(12,drift=TRUE)]("imagenes/stl3.png")
+
+![stl modelo]("imagenes/stlrwdrift.png")
+
+![pronosico con ets modelo]("imagenes/stl_ets.png")
 
 # MODELOS ARIMA 
 
@@ -1791,7 +1802,7 @@ Muchos de los modelos que hemos descrito son casos especiales de ARIMA:
 
 Veamos un ejemplo de uso:
 
-```{r}
+```{r ARIMA}
     # Ajustamos un modelo ARIMA automáticamente  a la serie de oro
     fit <- auto.arima(gold)
     
@@ -1805,11 +1816,11 @@ Veamos un ejemplo de uso:
 
 
 ```{r eval=FALSE}
-# para un modelo concreto
-arima(lh, order = c(1,0,1))
-arima(USAccDeaths, order = c(0,1,1), seasonal = list(order = c(0,1,1)))
-
-autoplot(forecast(arima(lh, order = c(1,0,1))))
+    # para un modelo concreto
+    arima(lh, order = c(1,0,1))
+    arima(USAccDeaths, order = c(0,1,1), seasonal = list(order = c(0,1,1)))
+    
+    autoplot(forecast(arima(lh, order = c(1,0,1))))
 
     fit <- auto.arima(presidents)
     fit %>% forecast(h = 12) %>% autoplot()
@@ -1817,211 +1828,121 @@ autoplot(forecast(arima(lh, order = c(1,0,1))))
 ```
 
 
-## Comparando auto.arima () y ets () en datos no estacionales
-La estadística AICc es útil para seleccionar entre modelos en la misma clase. Por ejemplo, puede usarlo para seleccionar un modelo ETS o para seleccionar un modelo ARIMA. Sin embargo, no puede usarlo para comparar modelos ETS y ARIMA porque están en diferentes clases de modelos.
+## Modelos ARIMA automáticos 
+La función `auto.arima()` da como resultado una formula del tipo siguiente: `ARIMA (p,d,q) (P,D,Q) [m]`, pr ejemplo ARIMA (0,1,4) (0,1,1) [12].
 
-En su lugar, puede usar la validación cruzada de series temporales para comparar un modelo ARIMA y un modelo ETS en los datos.  Debido a que tsCV () requiere funciones que devuelven objetos de pronóstico, configurará algunas funciones simples que se ajusten a los modelos y devuelva los pronósticos. Los argumentos de tsCV () son una serie de tiempo, una función de pronóstico y un horizonte de pronóstico h. Examine este fragmento de código del segundo capítulo:
+el significado de cada letra puede verse en la ayuda de la función, pero básicamente d es el orden de la primera diferenciación de la serie, D el de la frecuencia estacional
+ 
+La función `auto.arima()` también funciona con datos estacionales, aunque hay que establecer `lambda = 0` (de BoxcCox) en la función para que la transformación de estaciionalidad de deshaga, es decir que el modelo se ajustará a los datos transformados, y que los pronósticos se transformarán de nuevo a la escala original.
 
-```{r eval=FALSE}
-e <- matriz (NA_real_, nrow = 1000, ncol = 8)
-for (h en 1:8){
-  e [, h] <- tsCV (goog, ingenuo, h = h)
-#...
-   }
-```
 
-Además, recuerde que los operadores de tuberías en R toman el valor de lo que esté a la izquierda y lo pasan como argumento a lo que está a la derecha, paso a paso, de izquierda a derecha. Aquí hay un ejemplo basado en el código que viste en un capítulo anterior:
+Vamos a ver un ejemplo sobre los datos de precios del bitcoin.
 
 ```{r eval=FALSE}
-# Trazar pronósticos de 20 años de la serie de linces modelada por ets ()
-lynx%>% ets()%>% forecast(h = 20)%>% autoplot()
-```
+    # usamos los datos leidos de BTC
+    pBTC1<-ts(na.omit(log(pBTC))) # quitamos NA y hacemos log
+    # pintamos la grafica de log del BTC
+    pBTC1 %>% autoplot()
 
-En este ejercicio, comparará el MSE de dos funciones de pronóstico aplicadas a *austa*, y trazará previsiones de la función que calcula los mejores pronósticos. Una vez más, austa ha sido cargado en su espacio de trabajo.
+    # Ajustamo un modelo ARIMA con lambda = 0
+    fit <- auto.arima(pBTC1, lambda=0)
 
-INSTRUCCIONES
-100 XP
-INSTRUCCIONES
-100 XP
-Complete la función farima () para pronosticar los resultados de auto.arima (). Siga la estructura del código preescrito en fets () que hace lo mismo para ets ().
-Calcule errores con validación cruzada para modelos ETS en austa usando tsCV () con errores de un solo paso, y guárdelo en e1.
-Calcule errores con validación cruzada para modelos ARIMA en austa usando tsCV () con errores de un solo paso, y guárdelo en e2.
-Calcule el MSE con validación cruzada para cada clase de modelo y elimine los valores faltantes. Consulte el capítulo anterior si no puede recordar cómo calcular MSE.
-Produzca y trace pronósticos a 10 años de los valores futuros de austa usando la mejor clase de modelo.
-Take Hint (-30 XP)
+    # Resumen de resultados
+    summary(fit)
 
-```{r eval=FALSE}
-# Set up forecast functions for ETS and ARIMA models
-fets <- function(x, h) {
-  forecast(ets(x), h = h)
-}
-farima <- function(x, h) {
-  forecast(auto.arima(x), h = h)
-}
-
-# Compute CV errors for ETS as e1
-e1 <- tsCV(AirPassengers, fets, 1)
-
-# Compute CV errors for ARIMA as e2
-e2 <- tsCV(AirPassengers, farima, 1)
-
-# Find MSE of each model class
-mean(e1^2, na.rm = TRUE)
-mean(e2^2, na.rm = TRUE)
-
-# Plot 10-year forecasts using the best model class
-austa %>% farima(h=10) %>% autoplot()
-```
-
-## Modelos ARIMA automáticos para series temporales estacionales
-Como aprendió en el video, la función auto.arima () también funciona con datos de temporada. Tenga en cuenta que establecer lambda = 0 en la función auto.arima () - aplicar una transformación de registro - significa que el modelo se ajustará a los datos transformados, y que los pronósticos se transformarán de nuevo a la escala original.
-
-Después de aplicar el resumen () a este tipo de modelo ajustado, puede ver algo como el resultado a continuación que corresponde con (p, d, q) (P, D, Q) [m]:
-
- ARIMA (0,1,4) (0,1,1) [12]
-
-En este ejercicio, usará estas funciones para modelar y pronosticar los datos de h02 precargados, que contienen las ventas mensuales de drogas de corticosteroides en Australia.
-
-### INSTRUCCIONES
-100 XP
-Usando la función de trazado estándar, grafique los datos h02 registrados para verificar que tengan una varianza estable.
-Ajuste un modelo ARIMA estacional a la serie h02 con lambda = 0. Guarde esto para encajar.
-Resuma el modelo ajustado utilizando el método apropiado.
-¿Qué niveles de diferenciación se usaron en el modelo? Asigne la cantidad de diferencia de lag-1 a d y la diferenciación estacional a D.
-Trace los pronósticos para los próximos 2 años utilizando el modelo ajustado. Establecer h en consecuencia.
-Take Hint (-30 XP)
-
-```{r eval=FALSE}
-# Check that the logged h02 data have stable variance
-h02 %>% log() %>% autoplot()
-
-# Fit a seasonal ARIMA model to h02 with lambda = 0
-fit <- auto.arima(h02, lambda=0)
-
-# Summarize the fitted model
-summary(fit) #ARIMA(2,1,3)(0,1,1)[12]
-
-# Record the amount of lag-1 differencing and seasonal differencing used
-d <- 1
-D <- 1
-
-# Plot 2-year forecasts
-fit %>% forecast(h=24) %>% autoplot()
+    # Pintamos el pronostico para 60 días
+    fit %>% forecast(h=60) %>% autoplot() #+ coord_cartesian(xlim = c(1800, 2050)) 
 ```
 
 ![arima modelos](imagenes/arima.png)
 
-## Explorando las opciones de auto.arima ()
-La función auto.arima () necesita estimar muchos modelos diferentes, y se usan varios atajos para tratar de hacer la función lo más rápido posible. Esto puede hacer que se devuelva un modelo que en realidad no tiene el valor de AICc más pequeño. Para hacer que auto.arima () trabaje más duro para encontrar un buen modelo, agregue el argumento opcional paso a paso = FALSO para ver una colección de modelos mucho más grande.
-
-Aquí, intentará encontrar un modelo ARIMA para los datos de euretail precargados, que contiene el comercio minorista trimestral en la zona del euro de 1996-2011. Inspeccione en la consola antes de comenzar este ejercicio.
-
-### INSTRUCCIONES
-100 XP
-Use las opciones predeterminadas en auto.arima () para encontrar un modelo ARIMA para euretail y guárdelo en fit1.
-Utilice auto.arima () sin una búsqueda por pasos para encontrar un modelo ARIMA para euretail y guárdelo en fit2.
-Ejecute el resumen () para fit1 y fit2 en su consola, y use esto para determinar el mejor modelo. Para 2 decimales, ¿cuál es su valor AICc? Asignar el número a AICc.
-Finalmente, utilizando el mejor modelo basado en AICc, trace sus pronósticos a 2 años. Establecer h en consecuencia.
-
+La función `auto.arima()` necesita estimar muchos modelos diferentes, y se usan varios atajos para tratar de hacer la función lo más rápido posible. Esto puede hacer que se devuelva un modelo que en realidad no tiene el valor de *AICc* más pequeño. Para hacer que `auto.arima()` trabaje más duro para encontrar un buen modelo, agregue el argumento opcional `stepwise = FALSE` para ver una colección de modelos mucho más grande.
 
 ```{r eval=FALSE}
 # Find an ARIMA model for euretail
-fit1 <- auto.arima(euretail)
+fit2 <- auto.arima(pBTC1,stepwise = FALSE)
+summary(fit2) 
 
-# Don't use a stepwise search
-fit2 <- auto.arima(euretail,stepwise = FALSE)
-summary(fit1) # ARIMA(1,1,2)(0,1,1)[4]  
-summary(fit2) # ARIMA(0,1,3)(0,1,1)[4] 
-# AICc of better model
-AICc <- 68.39
-# autoplot(euretail)
-head(euretail) # vemosque la serie es de trimestres, quarters
-# Compute 2-year forecasts from better model
-fit2 %>% forecast(h=8) %>% autoplot()
+fit2 %>% forecast(h=60) %>% autoplot()
 ```
-## Comparando auto.arima () y ets () en datos estacionales
-¿Qué sucede cuando desea crear conjuntos de entrenamiento y prueba para datos que son más frecuentes que anualmente? Si es necesario, puede usar un vector en forma c (año, período) para las palabras clave de inicio y / o finalización en la función de ventana (). También debe asegurarse de estar utilizando los valores apropiados de h en las funciones de pronóstico. Recuerde que h debe ser igual a la longitud de los datos que componen su conjunto de prueba.
 
-Por ejemplo, si sus datos abarcan 15 años, su conjunto de capacitación consta de los primeros 10 años y tiene la intención de pronosticar los últimos 5 años de datos, usaría h = 12 * 5 no h = 5 porque su conjunto de pruebas incluiría 60 observaciones mensuales. Si, en cambio, su conjunto de capacitación consta de los primeros 9.5 años y desea pronosticar los últimos 5.5 años, usaría h = 66 para dar cuenta de los 6 meses adicionales.
+### Comparando auto.arima() y ets()
+Vamos a comparar los dos métodos semi automáticos de clclo de pronosticos, el modelo ets() y el auto.arima(). Lo haremos sobre los datos históricos de caudales maximos del río Nilo. Distinguiremos dos conjuntos de datos una de ensayo y otro de test.
 
-En el ejercicio final de este capítulo, comparará los modelos ARIMA y ETS estacionales aplicados al volumen de datos trimestrales de producción de cemento. Debido a que la serie es muy larga, puede permitirse usar un conjunto de entrenamiento y prueba en lugar de una validación cruzada de series de tiempo. Esto es mucho más rápido.
-
-Los datos de qcement están disponibles para usar en su espacio de trabajo.
-
-INSTRUCCIONES
-100 XP
-Crear un conjunto de entrenamiento llamado tren que consta de 20 años de datos de recopilación comenzando en el año 1988 y terminando en el último trimestre de 2007; debes usar un vector para el final. Los datos restantes son su conjunto de prueba.
-Ajuste los modelos ARIMA y ETS a los datos de entrenamiento y guárdelos en fit1 y fit2, respectivamente.
-Tal como lo hizo con ejercicios anteriores, verifique que ambos modelos tengan residuos de ruido blanco.
-Produzca pronósticos para los datos restantes de ambos modelos como fc1 y fc2, respectivamente. Establezca h en el número total de trimestres en su conjunto de prueba. Tenga cuidado: la última observación en qcement no es el último trimestre del año.
-Usando la función de precisión (), encuentre el mejor modelo basado en el valor RMSE y guárdelo como mejor modelo.
-Take Hint (-30 XP)
 ```{r eval=FALSE}
-# Use 20 years of the qcement data beginning in 1988
-train <- window(qcement, start =1988, end = c(2007,4))
-#autoplot(qcement)
-# Fit an ARIMA and an ETS model to the training data
+str(Nile) # vemos la serie de Nile
+# Seleccionamos dos conjuntos de entrenamiento y prueba
+train <- window(Nile, start =1871, end = 1960)
+test<-window(Nile, start =1960, end = 1970)
+
+# Ajustamos un modelos de arima y de ets a los datos de entrenamiento.
 fit1 <- auto.arima(train)
 fit2 <- ets(train)
 
-# Check that both models have white noise residuals
+# Vemos los residuos de cada caso. y como son parecidos
 checkresiduals(fit1)
 checkresiduals(fit2)
-# h= length(qcement)-length(train)
-# no h= 2014, 1 - (2007, 4)
-# Produce forecasts for each model
-fc1 <- forecast(fit1, h = 25)
-fc2 <- forecast(fit2, h = 25)
+
+# HAcemos el pronostico a 10 años de cada modelo
+fc1 <- forecast(fit1, h = 10)
+fc2 <- forecast(fit2, h = 10)
+
 # Use accuracy() to find better model based on RMSE
-accuracy(fc1, qcement)
-accuracy(fc2, qcement)
-bettermodel <- fit2 # rmse mas bajo
+accuracy(fc1, Nile)
+accuracy(fc2, Nile)
+
+#Pintamos los resultados
+autoplot(fc1,PI=F) + autolayer(fc2,PI=F,col="red") + autolayer(test)
 ```
 
-# Regresión dinamica
-Vemos como añadir otra infomración adicional a la propia serie temporal
+# REGRESION DINÁMICA
+La regreesión dinámica incorpora al conocimiento de los modelos relaciones de la serie temporal con otras series, ajustando los datos sgún la correlación que exista entre ellas. Se incorpora de esta manera información adicional
 
-## Pronóstico de ventas que permite gastos de publicidad
-¡Bienvenido al último capítulo del curso!
+La función `auto.arima()` que ajusta un modelo de regresión puede incorporar información adicional de otras series que se aporta como parámetro adicional con el el argumento `xreg` que contiene una matriz de variables de regresión. 
 
-La función auto.arima () se ajustará a un modelo de regresión dinámico con errores ARIMA. El único cambio en la forma en que lo utilizó anteriormente es que ahora usará el argumento xreg que contiene una matriz de variables de regresión. Aquí hay algunos fragmentos de código del video:
+Vamos a ver un caso de ejemplo para tener las cosas más claras. 
+La dataframe `datosESP` incluye datos de desempleo, precio de casas y exportaciones en España.
 
-> fit <- auto.arima (uschange [, "Consumo"],
-xreg = uschange [, "Ingresos"])
+```{r regdinamica, eval=FALSE}
+    # Vemos la variable datosESP y la pintamos
+    str(datosESP)
+    plot.zoo(datosESP, col=c("red", "blue","brown"), lwd=2)
+    
+    # Ajustamos un modelo ARIMA
+    fit <- auto.arima(datosESP[, "preciocasas"], xreg = datosESP[, "desempleo"], stationary = TRUE)
+    
+    fit <- auto.arima(datosESP$preciocasas, xreg = datosESP$desempleo, stationary = TRUE)
 
-> # rep (x, veces)
-> fcast <- forecast (ajuste, xreg = rep (0.8, 8))
+    # Chequeamos el modelo.
+    # Este parametro concreto nos da el incremento de precio casa
+    #por cada unidad de incremento de desempleo
+    coefficients(fit)[3]
+```
+Ahora que tenemos el modelo, vamos a hacer el pronostico condicionado. Para ello primero calcularemos el pronostico de desempleo según la función lineal `ets()` para 2 años (8 trimestres), y con los datos de esta predicción haremos un pronostico del precio de la vivienda.
 
-Puede ver que los datos están configurados en la columna Consumo de uschange, y la variable de regresión es la columna Ingresos. Además, la función rep() en este caso replicaría el valor 0.8 exactamente ocho veces para el argumento matriz xreg.
-
-En este ejercicio, modelará los datos de ventas retrocedidos frente a los gastos de publicidad, con un error ARMA para contabilizar cualquier correlación serial en los errores de regresión. Los datos están disponibles en su espacio de trabajo como anuncio y comprenden 24 meses de gastos de publicidad y ventas para una empresa de partes automotrices. La trama muestra las ventas frente a los gastos de publicidad.
-
-Piense en todo lo que ha aprendido hasta ahora en este curso, inspeccione los datos del anuncio en su consola y lea cuidadosamente cada instrucción para abordar este ejercicio desafiante.
-
-### INSTRUCCIONES
-100 XP
-Trace los datos en el anuncio. Las variables están en diferentes escalas, por lo tanto, use facets = TRUE.
-Ajuste una regresión con errores ARIMA para publicitar estableciendo el primer argumento de auto.arima () en la columna "ventas", el segundo argumento xreg en la columna "anuncio" y el tercer argumento estático en VERDADERO.
-Verifique que el modelo ajustado sea una regresión con errores AR (1). ¿Cuál es el aumento en las ventas por cada aumento de unidad en publicidad? Este coeficiente es el tercer elemento en la salida de los coeficientes ().
-Pronóstico del modelo ajustado que especifica los próximos 6 meses de gastos de publicidad como 10 unidades por mes como fc. Para repetir 10 seis veces, use la función rep () dentro de xreg como en el código de ejemplo anterior.
-Trace las predicciones fc y complete el código provisto para agregar una etiqueta x "Mes" y una etiqueta y "Ventas".
-Take Hint (-30 XP)
-
-```{r eval=FALSE}
-# Time plot of both variables
-autoplot(advert, facets = TRUE)
-
-# Fit ARIMA model
-fit <- auto.arima(advert[, "sales"], xreg = advert[, "advert"], stationary = TRUE)
-
-# Check model. Increase in sales for each unit increase in advertising
-salesincrease <- coefficients(fit)[3]
-
-# Forecast fit as fc
-fc <- forecast(fit, xreg = rep(10,6))
-
-# Plot fc with x and y labels
-autoplot(fc) + xlab("Month") + ylab("Sales")
+```{r regdinamica1}
+    # 1. Ejecutamos un modelo ets() para el desempleo
+    fit1<-ets(datosESP[, "desempleo"])
+    pronostico_desempleo<-forecast(fit1,h=8)
+    autoplot(pronostico_desempleo, main="desempleo ESP")
+    
+    # 2. Predecimos el precio de la vivienda con el pronóstico anterior de desempleo en cuenta.
+    fc <- forecast(fit1, xreg = pronostico_desempleo$mean)
+    # Pintamos la predicción condicionada
+    autoplot(fc, main="Pronostico reecio vivienda") +
+        xlab("trimestres") + ylab("precio vivienda Index")
+    
+    
+# y si el desempleo se mantien constante en el 20% esos 2 años    
+    pronostico_desempleo<-rep(20,8)
+    fc <- forecast(fit1, xreg = pronostico_desempleo)
+    autoplot(fc, main="Pronostico reecio vivienda") +
+        xlab("trimestres") + ylab("precio vivienda Index")
+# Y si el desempleo baja de forma escalonada hasta el 5% en 2 años    
+    fc <- forecast(fit1, xreg = c(18,15,10,8,5,5,5,5))
+    autoplot(fc, main="Pronostico reecio vivienda") +
+        xlab("trimestres") + ylab("precio vivienda Index")
+    
 ```
 
 ## Pronóstico de la demanda de electricidad
@@ -2029,426 +1950,45 @@ También puede modelar la demanda de electricidad diaria en función de la tempe
 
 En este ejercicio, se ajustará a un modelo de regresión cuadrática con un error ARMA. Un año de datos diarios se almacenan como elec, incluida la demanda diaria total, una variable indicadora para los días de trabajo (un día de trabajo se representa con 1, y un día no laborable se representa con 0) y las temperaturas máximas diarias. Como hay estacionalidad semanal, la frecuencia se ha establecido en 7.
 
-Echemos un vistazo a las primeras tres filas:
 
-> elec [1: 3,]
-       Temperatura de demanda Workday
-[1,] 168.2798 20.2 0
-[2,] 183.0822 21.9 1
-[3,] 184.5135 25.1 1
-elec ha sido precargado en su espacio de trabajo.
+Vamos a ver otro ejemplo de ajuste dinámico, en los datos de demanda electrica y temperatura. Como es sabido, cuando hace calor se enchufa el aire acondicionado, y cuando hace frio la calefacci´n, por lo que la demanda de energía guarda cierta relación física con la temperatura.
 
-INSTRUCCIONES
-100 XP
-Produzca diagramas de tiempo de solo la demanda diaria y las temperaturas máximas con facetas.
-Indique elecientemente para configurar la matriz de regresores para incluir MaxTemp para las temperaturas máximas, MaxTempSq, que representa el valor al cuadrado de la temperatura máxima, y Workday, en ese orden. Claramente, el segundo argumento de cbind () requerirá un operador matemático simple.
-Ajuste un modelo de regresión dinámica de la columna de demanda con errores ARIMA y establezca este ajuste.
-Si el día siguiente es un día laborable (el indicador es 1) con un pronóstico de temperatura máxima de 20 ° C, ¿cuál es la demanda prevista? Complete los valores apropiados en cbind () para el argumento xreg en forecast ().
-Take Hint (-30 XP)
-
-Time Series:
-Start = c(1, 1) 
-End = c(53, 1) 
-Frequency = 7 
-            Demand Temperature Workday
- 1.000000 168.2798        20.2       0
- 1.142857 183.0822        21.9       1
- 1.285714 184.5135        25.1       1
- 1.428571 174.8963        26.0       0
- 1.571429 188.5909        23.0       1
- 1.714286 188.9169        22.2       1
- 1.857143 173.8142        20.3       0
- 2.000000 169.5152        26.1       0
- 2.142857 195.7288        19.6       1
- 2.285714 199.9029        20.0       1
- 2.428571 205.3375        27.4       1
- 2.571429 228.0782        32.4       1
- 2.714286 258.5984        34.0       1
- 2.857143 201.7970        22.4       0
- 3.000000 187.6298        22.5       0
- 3.142857 254.6636        30.0       1
- 3.285714 322.2323        42.4       1
- 3.428571 343.9934        41.5       1
- 3.571429 347.6376        43.2       1
- 3.714286 332.9455        43.1       1
- 3.857143 219.7517        23.7       0
- 4.000000 186.9816        22.3       0
- 4.142857 228.4876        24.0       1
- 4.285714 222.3650        23.1       1
- 4.428571 220.4669        23.3       1
- 4.571429 240.5806        29.6       1
- 4.714286 224.6652        22.1       1
- 4.857143 181.1498        20.3       0
- 5.000000 182.2231        27.0       0
- 5.142857 230.2226        34.5       0
- 5.285714 309.3744        41.4       1
- 5.428571 243.2239        24.5       1
- 5.571429 258.3896        29.2       1
- 5.714286 259.3053        26.8       1
- 5.857143 241.3185        29.2       0
- 6.000000 264.5050        38.6       0
- 6.142857 264.9556        33.9       1
- 6.285714 221.6807        25.7       1
- 6.428571 237.1498        30.5       1
- 6.571429 276.4134        35.1       1
- 6.714286 283.3155        35.6       1
- 6.857143 272.5084        40.0       0
- 7.000000 243.6298        39.5       0
- 7.142857 223.0845        24.7       1
- 7.285714 238.7871        26.2       1
- 7.428571 252.2366        26.9       1
- 7.571429 250.9030        26.6       1
- 7.714286 242.4558        26.6       1
- 7.857143 214.2726        28.7       0
- 8.000000 175.2935        23.0       0
- 8.142857 216.4104        25.3       1
- 8.285714 232.6376        30.2       1
- 8.428571 222.3622        25.4       1
- 8.571429 210.2031        20.3       1
- 8.714286 211.6370        20.4       1
- 8.857143 186.7995        19.6       0
- 9.000000 178.2322        22.9       0
- 9.142857 221.6854        24.3       1
- 9.285714 237.5595        32.7       1
- 9.428571 220.5093        21.8       1
- 9.571429 216.7880        21.5       1
- 9.714286 214.8875        23.5       1
- 9.857143 193.5388        23.1       0
-10.000000 183.3550        22.3       0
-10.142857 228.3825        25.0       1
-10.285714 255.3741        33.3       1
-10.428571 233.9622        25.6       1
-10.571429 216.4703        20.8       1
-10.714286 215.9607        22.5       1
-10.857143 194.5699        27.8       0
-11.000000 200.7804        32.7       0
-11.142857 213.9160        32.1       0
-11.285714 240.5818        31.1       1
-11.428571 220.3766        21.8       1
-11.571429 219.1226        22.7       1
-11.714286 223.9310        26.2       1
-11.857143 191.9780        29.1       0
-12.000000 172.9602        20.3       0
-12.142857 212.6693        24.7       1
-12.285714 216.7992        24.1       1
-12.428571 215.9562        22.2       1
-12.571429 226.8287        30.7       1
-12.714286 221.9756        22.9       1
-12.857143 186.2491        19.4       0
-13.000000 179.2746        18.7       0
-13.142857 213.5667        18.8       1
-13.285714 214.6133        24.4       1
-13.428571 217.4129        26.9       1
-13.571429 221.7905        25.3       1
-13.714286 214.8814        21.5       1
-13.857143 185.2121        23.6       0
-14.000000 181.7951        25.9       0
-14.142857 230.6637        30.1       1
-14.285714 253.2901        32.9       1
-14.428571 235.5289        26.0       1
-14.571429 222.7004        18.2       1
-14.714286 218.9320        19.7       1
-14.857143 192.1518        24.1       0
-15.000000 182.5951        24.3       0
-15.142857 218.4745        24.5       1
-15.285714 226.2018        22.0       1
-15.428571 225.5993        17.8       1
-15.571429 223.8808        18.9       1
-15.714286 220.3987        18.9       1
-15.857143 189.7302        22.4       0
-16.000000 180.7974        21.5       0
-16.142857 212.9014        20.7       1
-16.285714 216.1034        21.1       1
-16.428571 218.3603        21.6       1
-16.571429 215.1137        24.3       1
-16.714286 177.7474        18.8       0
-16.857143 183.7940        17.3       0
-17.000000 178.9498        18.3       0
-17.142857 181.3320        18.1       0
-17.285714 219.8456        17.6       1
-17.428571 218.9037        19.2       1
-17.571429 217.9708        18.3       1
-17.714286 189.6816        20.5       0
-17.857143 189.3522        19.2       0
-18.000000 186.1761        17.2       0
-18.142857 222.7253        21.3       1
-18.285714 226.8940        22.3       1
-18.428571 227.8383        17.6       1
-18.571429 234.1514        15.6       1
-18.714286 234.8755        13.9       1
-18.857143 205.5938        17.0       0
-19.000000 203.6670        13.7       0
-19.142857 237.8857        16.4       1
-19.285714 240.6153        16.0       1
-19.428571 240.3634        16.2       1
-19.571429 241.3502        18.4       1
-19.714286 236.7497        18.3       1
-19.857143 206.3455        16.3       0
-20.000000 192.7160        19.7       0
-20.142857 229.3544        19.9       1
-20.285714 230.0164        20.1       1
-20.428571 224.4637        20.2       1
-20.571429 216.9592        22.4       1
-20.714286 212.6305        22.8       1
-20.857143 188.9991        20.0       0
-21.000000 181.5075        21.4       0
-21.142857 217.0623        22.8       1
-21.285714 224.3771        21.6       1
-21.428571 221.9410        23.1       1
-21.571429 222.4899        20.9       1
-21.714286 221.5659        20.3       1
-21.857143 195.6669        17.1       0
-22.000000 190.3111        20.2       0
-22.142857 226.0510        20.8       1
-22.285714 226.9175        21.7       1
-22.428571 230.2927        18.0       1
-22.571429 234.6604        15.8       1
-22.714286 231.8486        17.7       1
-22.857143 201.0383        18.4       0
-23.000000 199.7129        14.9       0
-23.142857 232.5876        16.4       1
-23.285714 235.0114        16.4       1
-23.428571 230.9970        18.1       1
-23.571429 232.0875        16.7       1
-23.714286 234.6715        15.4       1
-23.857143 202.4323        16.8       0
-24.000000 196.7197        14.9       0
-24.142857 206.5046        15.4       0
-24.285714 235.7782        18.3       1
-24.428571 241.0994        16.2       1
-24.571429 243.6167        16.2       1
-24.714286 237.2126        16.5       1
-24.857143 212.1366        15.2       0
-25.000000 203.3582        16.0       0
-25.142857 241.3206        17.0       1
-25.285714 244.7568        15.8       1
-25.428571 244.5883        14.2       1
-25.571429 252.8974        12.2       1
-25.714286 239.6948        15.1       1
-25.857143 211.0494        15.0       0
-26.000000 205.6888        15.4       0
-26.142857 245.3576        14.4       1
-26.285714 261.7745        14.3       1
-26.428571 248.2476        15.7       1
-26.571429 243.3896        15.6       1
-26.714286 241.5915        14.5       1
-26.857143 218.8741        12.7       0
-27.000000 220.2953        11.0       0
-27.142857 255.0056        13.1       1
-27.285714 254.8101        13.1       1
-27.428571 245.0865        16.6       1
-27.571429 247.8669        12.4       1
-27.714286 249.0520        12.4       1
-27.857143 218.4067        15.2       0
-28.000000 212.9148        13.9       0
-28.142857 241.2600        15.7       1
-28.285714 242.9725        14.3       1
-28.428571 257.5991        13.3       1
-28.571429 257.9806        14.7       1
-28.714286 247.6547        14.4       1
-28.857143 227.0290        11.1       0
-29.000000 220.9397        14.9       0
-29.142857 258.8287        13.1       1
-29.285714 264.1827        12.9       1
-29.428571 253.5232        14.6       1
-29.571429 259.8050        12.1       1
-29.714286 256.2355        13.8       1
-29.857143 223.4825        13.2       0
-30.000000 215.7748        13.2       0
-30.142857 258.8278        12.9       1
-30.285714 268.9846        12.2       1
-30.428571 267.2355        13.4       1
-30.571429 269.3544        14.9       1
-30.714286 253.2748        15.9       1
-30.857143 223.1568        14.9       0
-31.000000 211.2160        16.8       0
-31.142857 242.0725        16.7       1
-31.285714 246.4046        16.5       1
-31.428571 237.8841        18.9       1
-31.571429 239.6187        19.3       1
-31.714286 263.3148         9.8       1
-31.857143 227.5769        13.4       0
-32.000000 221.6350        14.2       0
-32.142857 256.6197        15.2       1
-32.285714 250.4816        16.5       1
-32.428571 246.8155        15.9       1
-32.571429 252.0098        13.6       1
-32.714286 243.5690        15.9       1
-32.857143 217.1874        14.6       0
-33.000000 212.9136        13.6       0
-33.142857 261.0586        12.7       1
-33.285714 262.4751        12.7       1
-33.428571 253.5156        14.5       1
-33.571429 249.8530        14.8       1
-33.714286 244.9549        16.9       1
-33.857143 221.1463        13.3       0
-34.000000 210.5977        15.7       0
-34.142857 250.2505        13.6       1
-34.285714 248.2650        13.3       1
-34.428571 247.3034        13.3       1
-34.571429 242.7937        17.4       1
-34.714286 231.1652        20.6       1
-34.857143 202.5800        19.9       0
-35.000000 200.8607        16.3       0
-35.142857 239.1268        16.1       1
-35.285714 236.9323        18.7       1
-35.428571 233.0740        19.5       1
-35.571429 233.1221        20.0       1
-35.714286 233.8208        15.0       1
-35.857143 193.0105        21.0       0
-36.000000 189.3291        21.0       0
-36.142857 236.2696        17.8       1
-36.285714 238.2240        16.1       1
-36.428571 241.4517        14.8       1
-36.571429 241.7054        15.9       1
-36.714286 233.5166        16.7       1
-36.857143 198.1050        18.9       0
-37.000000 186.0104        20.7       0
-37.142857 218.2276        20.8       1
-37.285714 222.7274        20.7       1
-37.428571 222.0213        19.1       1
-37.571429 226.7373        17.1       1
-37.714286 231.3683        15.9       1
-37.857143 196.5834        18.5       0
-38.000000 185.0438        20.1       0
-38.142857 225.4641        18.0       1
-38.285714 235.6982        14.8       1
-38.428571 236.1329        16.2       1
-38.571429 241.1509        13.7       1
-38.714286 230.3640        15.5       1
-38.857143 199.8989        16.8       0
-39.000000 187.0570        17.2       0
-39.142857 217.4684        23.0       1
-39.285714 215.1564        25.3       1
-39.428571 215.4661        23.5       1
-39.571429 217.7978        17.0       1
-39.714286 214.7996        19.3       1
-39.857143 184.7269        23.3       0
-40.000000 177.3159        27.9       0
-40.142857 207.7305        22.9       1
-40.285714 218.1746        23.8       1
-40.428571 224.6942        15.9       1
-40.571429 224.9024        17.4       1
-40.714286 212.3656        18.1       1
-40.857143 183.7487        26.2       0
-41.000000 173.5839        19.2       0
-41.142857 221.1614        25.0       1
-41.285714 216.7209        17.7       1
-41.428571 221.2251        18.7       1
-41.571429 217.7267        23.1       1
-41.714286 213.9397        24.9       1
-41.857143 186.2191        21.2       0
-42.000000 181.4456        27.5       0
-42.142857 222.1222        15.5       1
-42.285714 228.7036        16.9       1
-42.428571 225.6833        17.1       1
-42.571429 224.5799        16.7       1
-42.714286 214.5551        18.1       1
-42.857143 191.7391        24.2       0
-43.000000 183.9389        28.8       0
-43.142857 213.2147        20.6       1
-43.285714 222.9096        28.2       1
-43.428571 233.0016        31.1       1
-43.571429 224.6348        22.7       1
-43.714286 227.9454        30.4       1
-43.857143 193.2198        19.8       0
-44.000000 182.9607        24.5       0
-44.142857 212.9383        22.5       1
-44.285714 220.9596        19.7       1
-44.428571 218.7275        22.5       1
-44.571429 218.7459        21.8       1
-44.714286 226.7615        32.7       1
-44.857143 187.8364        20.3       0
-45.000000 186.3019        16.6       0
-45.142857 200.5634        23.3       1
-45.285714 186.9384        28.9       0
-45.428571 206.6377        17.8       1
-45.571429 211.9857        23.5       1
-45.714286 227.2132        32.8       1
-45.857143 205.4283        34.6       0
-46.000000 176.0597        19.4       0
-46.142857 211.9239        20.2       1
-46.285714 215.3201        18.8       1
-46.428571 222.2635        24.3       1
-46.571429 239.6066        30.6       1
-46.714286 223.6820        27.7       1
-46.857143 189.5637        18.0       0
-47.000000 182.0131        18.1       0
-47.142857 208.3546        20.1       1
-47.285714 211.8105        20.9       1
-47.428571 217.4702        29.6       1
-47.571429 228.7774        28.1       1
-47.714286 215.2890        23.0       1
-47.857143 196.0592        30.8       0
-48.000000 187.2593        25.0       0
-48.142857 222.5512        19.6       1
-48.285714 213.9397        21.8       1
-48.428571 218.0656        18.7       1
-48.571429 214.9400        19.4       1
-48.714286 212.5017        20.5       1
-48.857143 193.7848        24.3       0
-49.000000 213.2383        34.1       0
-49.142857 242.4983        29.0       1
-49.285714 232.7346        26.0       1
-49.428571 228.0617        23.5       1
-49.571429 235.9962        26.4       1
-49.714286 224.0923        21.2       1
-49.857143 192.1555        22.5       0
-50.000000 185.8437        17.7       0
-50.142857 216.0966        21.2       1
-50.285714 217.0111        20.8       1
-50.428571 219.8595        21.1       1
-50.571429 215.7580        21.4       1
-50.714286 219.1628        27.4       1
-50.857143 209.4520        31.2       0
-51.000000 196.8496        25.9       0
-51.142857 228.2496        23.4       1
-51.285714 231.0967        32.1       1
-51.428571 214.1462        22.3       1
-51.571429 216.3581        24.0       1
-51.714286 206.0286        19.9       1
-51.857143 189.0453        23.0       0
-52.000000 204.0398        33.3       0
-52.142857 230.4448        24.7       1
-52.285714 219.4981        26.7       1
-52.428571 192.9426        22.2       1
-52.571429 166.6984        23.4       0
-52.714286 166.8567        20.1       0
-52.857143 173.7280        22.2       0
-53.000000 188.5128        31.2       0
-
+Tenemos un fichero que continen un año de datos diarios de demanda, temperatura y si es o no un dia normal o festivo almacenados en `elec.csv`
 
 ```{r eval=FALSE}
+elec<-read.csv("elec.csv",sep = ";")
 # Time plots of demand and temperatures
-autoplot(elec[, c("Demand", "Temperature")], facets = TRUE)
+head(elec)
+str(elec)
+elec<-ts(elec, start = 1, frequency=7)
+autoplot(elec[, c("Demanda", "Temperatura")], facets = TRUE)
 
-# Matrix of regressors
-xreg <- cbind(MaxTemp = elec[, "Temperature"], 
-              MaxTempSq = (elec[, "Temperature"])^2, 
-              Workday = elec[, "Workday"])
+# Matriz de regresión que usamos tem y wday
+xreg <- cbind(MaxTemp = elec[, "Temperatura"], 
+              Workday = elec[, "Wday"])
 
-# Fit model
-fit <- auto.arima(elec[,"Demand"], xreg = xreg)
+# Ajustamos el modelo de prediccion de la demanda
+fit <- auto.arima(elec[,"Demanda"], xreg = xreg)
 
-# Forecast fit one day ahead
-forecast(fit, xreg = cbind(20, 400, 1))
+# Realizamos un pronostico para los 5 días siguientes 
+# suponemos que la tem se queda en 30 
+# y que son días normales 3 entre semana y 2 festivos seguidos
+prono5<-forecast(fit, xreg = cbind(rep(30,5),c(0,0,0,1,1)))
+autoplot(prono5, xlim = c(40, 55))
 ```
 
-# fourier 
-Sirven para series cuos ciclos no son constantes ..
+# FOURIER 
+Cuando tenemos serie cíclicas, pero no estacionales la predicción se hace más compleja y debemos recurrir a la trnasformada de Fourier. Tambien es util en series estacionales pero dificiles de detectar como en series diarias de datos con estacionalidad mensual, en cambio, la regresión armónica que usa senos y cosenos puede ser una solución para modelizar estas series.
 
-##Previsión de datos semanales
-Con datos semanales, es difícil manejar la estacionalidad usando modelos ETS o ARIMA ya que la longitud estacional es demasiado grande (aproximadamente 52). En cambio, puede usar la regresión armónica que usa senos y cosenos para modelar la estacionalidad.
+La función `fourier(x,K,h=NULL))` facilita la generación de los armónicos necesarios. Cuanto mayor sea el orden (K), más "ondulado" se permite el patrón estacional. Con K = 1, es una curva sinusoidal simple. Puede seleccionar el valor de K minimizando el valor del estimador del error **AICc**.
 
-La función fourier () facilita la generación de los armónicos necesarios. Cuanto mayor sea el orden (K), más "ondulado" se permite el patrón estacional. Con K = 1, es una curva sinusoidal simple. Puede seleccionar el valor de K minimizando el valor de AICc. Como viste en el video, fourier () toma una serie de tiempo requerida, el número requerido de términos de Fourier para generar y el número opcional de filas que necesita pronosticar:
-
-> # fourier (x, K, h = NULL)
 
 > fit <- auto.arima (café, xreg = fourier (café, K = 6),
                     estacional = FALSE, lambda = 0)
 > ajuste%>%
     pronóstico (xreg = fourier (café, K = 6, h = 24))%>%
     autoplot () + ylim (1.6, 5.1)
+
 Los datos de gasolina precargados comprenden datos semanales sobre productos de gasolina para motores con acabado en los Estados Unidos. En este ejercicio, ajustará una regresión armónica a este conjunto de datos y pronosticará los próximos 3 años.
 
 INSTRUCCIONES
@@ -2461,40 +2001,41 @@ Take Hint (-30 XP)
 
 
 ```{r}
+elec<-read.csv("elec.csv",sep = ";")
+# Time plots of demand and temperatures
+
+elec<-ts(elec, start = 1, frequency=7)
+elec1<-window(elec[,"Demanda"],star=40)
+
+autoplot(elec1)
 # Set up harmonic regressors of order 13
-harmonics <- fourier(gasoline, K = 13)
+armonicos <- fourier(elec1, K =3)
 
 # Fit regression model with ARIMA errors
-fit <- auto.arima(gasoline, xreg = harmonics, seasonal = FALSE)
-
-# Forecasts next 3 years
-newharmonics <- fourier(gasoline, K = 13, h = 3*52)
-fc <- forecast(fit, xreg = newharmonics)
+fit <- auto.arima(elec1, xreg = armonicos, seasonal = FALSE)
+fc <- forecast(fit, xreg = armonicos, h=7*2)
 
 # Plot forecasts fc
 autoplot(fc)
 ```
+
+
 ## Regresión armónica para la estacionalidad múltiple
 Las regresiones armónicas también son útiles cuando las series temporales tienen múltiples patrones estacionales. Por ejemplo, taylor contiene demanda de electricidad cada media hora en Inglaterra y Gales durante algunos meses en el año 2000. Los períodos estacionales son 48 (estacionalidad diaria) y 7 x 48 = 336 (estacionalidad semanal). No hay suficientes datos para considerar la estacionalidad anual.
 
 auto.arima () tomaría mucho tiempo para ajustarse a series largas como esta, por lo que en su lugar se ajustará a un modelo de regresión estándar con términos de Fourier utilizando la función `tslm()`. Esto es muy similar a lm() pero está diseñado para manejar series temporales. Con la estacionalidad múltiple, debe especificar el orden K para cada uno de los períodos estacionales.
 
-# El argumento de la fórmula es una descripción simbólica
-# del modelo a ser instalado
-
-> args (tslm)
+args(tslm)
 función (fórmula, ...)
 tslm () es una función recién introducida, por lo que debería poder seguir el código preescrito en su mayor parte. Los datos de taylor se cargan en su espacio de trabajo.
 
-INSTRUCCIONES
-100 XP
 Ajuste una regresión armónica llamada fit to taylor usando el orden 10 para cada tipo de estacionalidad.
 Pronóstico 20 días hábiles más adelante como fc. Recuerde que los datos son cada media hora para establecer el valor correcto para h.
 Crea un gráfico de tiempo de las predicciones.
 Verifique los residuos de su modelo ajustado. Como puede ver, auto.arima () habría hecho un mejor trabajo.
 Take Hint (-30 XP)
 
-```{r}
+```{r eval=FALSE}
 # Fit a harmonic regression using order 10 for each type of seasonality , 
 # K es un vector pues hay doble ciclo estacinal diario y semanal
 fit <- tslm(taylor ~ fourier(taylor, K = c(10, 10)))
@@ -2514,8 +2055,7 @@ Otra serie temporal con múltiples períodos estacionales son las `calls`, que c
 
 Los residuos en este caso aún no superan las pruebas de ruido blanco, pero sus autocorrelaciones son pequeñas, aunque son significativas. Esto es porque la serie es tan larga. A menudo no es realista tener residuos que pasen las pruebas para series tan largas. El efecto de las correlaciones restantes en las previsiones será insignificante.
 
-### INSTRUCCIONES
-100 XP
+
 Trace los datos de las llamadas para ver la fuerte estacionalidad diaria y la estacionalidad semanal débil.
 Configure la matriz xreg usando el orden 10 para la estacionalidad diaria y el 0 para la estacionalidad semanal.
 Ajusta un modelo de regresión dinámico llamado fit usando auto.arima () con estacional = FALSO y estacionario = VERDADERO.
@@ -2523,7 +2063,7 @@ Verifique los residuos del modelo ajustado.
 Cree las predicciones para 10 días hábiles antes como fc, y luego grábelas. La descripción del ejercicio debería ayudarlo a determinar el valor apropiado de h.
 Take Hint (-30 XP)
 
-```{r}
+```{r eval=FALSE}
 # Plot the calls data
 autoplot(calls)
 
