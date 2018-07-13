@@ -3,12 +3,22 @@ title: "Series temporales en R"
 author: "Fernando Villalba Bergado"
 date: "24 de abril de 2018"
 output:
-  html_document: default
-  pdf_document: default
+  html_document: 
+    highlight: espresso
+    keep_md: yes
+    number_sections: yes
+    theme: united
+    toc: yes
+  pdf_document: 
+    keep_tex: yes
+    number_sections: yes
+    toc: yes
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE,
+                    warning=FALSE,
+                    message = FALSE)
 ```
 
 # INTRODUCCIÓN
@@ -18,18 +28,18 @@ Una serie temporal es una secuencia de datos, observaciones o valores, medidos e
 
 Las series temporales son pares de valores fecha-dato y uno de los usos principales es su análisis para predicción y pronóstico (así se hace por ejemplo con los datos climáticos, las acciones de bolsa, o las series de datos demográficos). 
 
-Las series que utilizamos habitualmente son **univariadas*, lo que quiere decir que los datos se corresponden con observaciones secuenciales sobre intervalos de tiempo iguales (un dato al año, al día , hora). Si el tiempo entre observaciones es igual siempre, el tiempo no es necesario en los datos aunque esté implicito en ellos, y solo necesitamos una fecha inicial. 
+Las series que utilizamos habitualmente son **univariadas*, lo que quiere decir que los datos se corresponden con observaciones secuenciales sobre intervalos de tiempo iguales (un dato al año, al día , hora). Si el tiempo entre observaciones es igual siempre, el tiempo no es necesario en los datos aunque esté implícito en ellos, y solo necesitamos una fecha inicial. 
 
 ## Clasificación de las series temporales
 Existen muchas formas de clasificar las series temporales, cada vez que clasificamos algo pretendemos identificar patrones, grupos comunes que nos aporte información del comportamiento de los datos. Una vez identificado el grupo, nos permite focalizar y realizar un mejor análisis más orientado y eficaz.
 
-Visualizar los datos es el punto de partida de cualquier análisis, porque en la gráfica se aprecian de forma  intuitiva las caracteristicas de las series y se determina de manera natural la estructura de la serie, enfocando el análisis.
+Visualizar los datos es el punto de partida de cualquier análisis, porque en la gráfica se aprecian de forma  intuitiva las características de las series y se determina de manera natural la estructura de la serie, enfocando el análisis.
 
 Existen muchas características de las series temporales, vamos a ver algunas de ellas que incluso son complementarias y yuxtapuestas, pero que se entienden  mejor al comparar con su par inverso:
 
 ### Tendendcia - ciclo - aleatoriedad
 
-Una forma de ver las caracteristicas de una serie temporal es según estas tres caracteristicas, que se pueden dar deforma aditiva sobre una misma serie:
+Una forma de ver las características de una serie temporal es según estas tres características, que se pueden dar deforma aditiva sobre una misma serie:
 
     1. **Series de tendencia.** Son aquellas que tienen una evolución creciente o decreciente en el tiempo.
     2. **Series estacionales** Son las que reflejan comportamientos de patrones periódicos asociados al calendario, o formas que se repiten en horas tiempos fijos. Las **Series Cíclicas.** serían las que tienen patrones de repetición que no se corresponden con calendarios fijos, se repiten en ciclos irregulares, mucho más difíciles de predecir.
@@ -37,43 +47,43 @@ Una forma de ver las caracteristicas de una serie temporal es según estas tres 
     
 En las series estacionales, podemos pronosticar las temporadas de picos y valles, pero en las series cíclicas es algo más complicado pues la repetición del ciclo no es previsible por calendario. También interesa apreciar en los datos si existe una tendencia de fondo, de forma que pueda extraerse de los datos y aplicar diferentes modelos de predicción a cada uno de los componentes que forman la serie de observaciones.
 
-Lo habitual es que una serie temporal sea mezcla y convinación de estos comprotamientos (tendencia + estacionalidad + ruido), identificarlos facilitará el trabajo de análisis.
+Lo habitual es que una serie temporal sea mezcla y combinación de estos comportamientos (tendencia + estacionalidad + ruido), identificarlos facilitará el trabajo de análisis.
 
 Existen funciones en R que descomponen una serie temporal $$X_t$$ en los 3 componentes principales  $$X_t=T_t+E_t+A_t$$ (tendencia + estacionalidad + ruido). Una de estas funciones es `sdl()` del paquete base y también la función `decompose()`.
 
-Ejemplo: descomponemos los componentes estacionalidad + tendencia + ruido de la serie de cotizaciones del oro entre 1980 y 1985 almacenanda en la variable `gold`.
+Ejemplo: descomponemos los componentes estacionalidad + tendencia + ruido de la serie de cotizaciones del oro entre 1980 y 1985 almacenada en la variable `gold`.
 
-```{r eval=FALSE}
+```{r descom_oro, eval=FALSE}
     require(forecast) # la serie ejem: gold está en esta libreria
+    
     # Aplicamos funcion de descomposición sdl()
     des.oro<-stl(gold,s.window = "periodic" )
     #Pintamos el resultado    
     plot(des.oro, main="Descomposición del precio del oro")
     #plot(decompose(gold))
 ```
-
-![descomposicion de series]("imagenes/descomposicion1.png")
+![descomposición de la serie de precios del oro](imagenes/descom.png)
 
 ### Estacionariedad 
-Esta característica de las series incica si sus propiedades cámbian o no cambian con el tiempo, es decir si por ejemplo la media, la varianza o la covarianza son constantes en la serie o por el contrario cambian a lo largo de las observaciones de forma significativa. En resumen, una serie estacionaria es aquella cuyas propiedades (media, varianza, covarianza) no dependen del periodo de observación en el que se miden. 
+Esta característica de las series indica si sus propiedades cambian o no cambian con el tiempo, es decir si por ejemplo la media, la varianza o la covarianza son constantes en la serie o por el contrario cambian a lo largo de las observaciones de forma significativa. En resumen, una serie estacionaria es aquella cuyas propiedades (media, varianza, covarianza) no dependen del periodo de observación en el que se miden. 
 
-No confuncir con estacional con estacionario, pues son conceptos diferentes, uno indica ciclos y el otro es una propiedad de los datos.
+No confundir con estacional con estacionario, pues son conceptos diferentes, uno indica ciclos y el otro es una propiedad de los datos.
 
-La *estacionariedad* es una propiedad muy importante, pues existen muchos análisis matemáticos que  describen muy bien las series estacionarias, y no tan bien las que no lo son, de hecho los modelos estadisticos de pronóstico de series temporales **sólo sirven para series estacionarias**.
+La *estacionariedad* es una propiedad muy importante, pues existen muchos análisis matemáticos que  describen muy bien las series estacionarias, y no tan bien las que no lo son, de hecho los modelos estadísticos de pronóstico de series temporales **sólo sirven para series estacionarias**.
 
-Existen métodos que veremos para transformar una serie no estacionaria en otra que si lo es, y por tanto sobre la que podemos aplicar pronosticos estadísticos con armamento de análisis potente y fundamentado. Recordemos también que los modelos de pronostico no solo pueden ser estadisticos, hay cientos de modelos físicos y basados en otros conceptos que si funcionan con las series no estacionarias.
+Existen métodos que veremos para transformar una serie no estacionaria en otra que si lo es, y por tanto sobre la que podemos aplicar pronósticos estadísticos con armamento de análisis potente y fundamentado. Recordemos también que los modelos de pronostico no solo pueden ser estadísticos, hay cientos de modelos físicos y basados en otros conceptos que si funcionan con las series no estacionarias.
 
 La estacionariedad puede darse en unas propiedades y no darse en otras, por lo que las transformaciones serán solo en la dirección que interese. La estacionariedad de la varianza, por ejemplo, se denomina **homoestacidad**.
 
-![Ejemplo de estacionariedad en la media](estacionaria.png)
+![Ejemplo de estacionariedad en la media](imagenes/estacionaria.png)
 
-![Ejemplo de estacionariedad en la varianza](estacionariaVAR.png)
+![Ejemplo de estacionariedad en la varianza](imagenes/estacionariaVAR.png)
 
 Las series estacionales pueden abordarse, además de por los sistemas estadísticos, por otros métodos como el **análisis espectral** o de frecuencias. Consisten estos sistemas en la aplicación de la *transformada de Fourier* a los datos para descomponer la serie en combinación lineal de funciones trigonométricas (suma de funciones seno y coseno). 
 
-Las graficas asociadas a los métodos espectrales son el periodograma o espectro de frecuencias que está relacionado con la grafica de autocorrelación. En el ejemplo siguiente se analizan las graficas ACF y el periodograma de la serie de manchas solares anual, y como se ve el perido de maxima autocorrelación de la gráfica de ACF que se corresponde con una retraso de 10 años, es equivalente a la frecuencia máxima del espectro de frecuencias en tormo a 0,1 ($$ 1/0,1=10$$)
+Las gráficas asociadas a los métodos espectrales son el periodograma o espectro de frecuencias que está relacionado con la gráfica de autocorrelación. En el ejemplo siguiente se analizan las gráficas ACF y el periodograma de la serie de manchas solares anual, y como se ve el periodo de máxima autocorrelación de la gráfica de ACF que se corresponde con una retraso de 10 años, es equivalente a la frecuencia máxima del espectro de frecuencias en tormo a 0,1 ($$ 1/0,1=10$$)
 
-```{r}
+```{r periodograma}
     acf(sunspot.year)
     spectrum(sunspot.year)
 
@@ -81,7 +91,7 @@ Las graficas asociadas a los métodos espectrales son el periodograma o espectro
 ```
 
 ### Autocorrelación
-La autocorrelación (ACF) es una medida de la dependencia de los valores actuales respecto de los pasados en una serie temporal. Es una propiedad muy importante cuando se evalua para diferentes peridos de retardo en las graficas de autocorrelación que se generan con la fucnión `acf()`. Cuando los valores son cercanos a 1 indica una relación lineal entre los valores pasado y futuros, si es cero es que no existe relación (lineal) apreciable y si es es -1 es que la dependencia es inverssamente lineal.
+La autocorrelación (ACF) es una medida de la dependencia de los valores actuales respecto de los pasados en una serie temporal. Es una propiedad muy importante cuando se evalúa para diferentes periodos de retardo en las gráficas de autocorrelación que se generan con la función `acf()`. Cuando los valores son cercanos a 1 indica una relación lineal entre los valores pasado y futuros, si es cero es que no existe relación (lineal) apreciable y si es es -1 es que la dependencia es inversamente lineal.
 
 
 ### Ruido blanco
@@ -90,37 +100,37 @@ Se llama ruido blanco a una serie temporal completamente aleatoria **impredecibl
 Cuando hacemos la suma acumulada de una serie de observaciones de *ruido blanco* se nos genera lo que denominamos un *camino aleatorio* ( *randow walk*).
 
  
-```{r}
+```{r ruidoblanco}
     # Generamos ruido blanco
     y<-rnorm(100)
-    par(mfrow=c(2,2))
+    #par(mfrow=c(2,2))
     # pintamos la serie de ruido blanco
     plot(y, type="l")
     plot(acf(y)) # pintamos la grafica de autocorrelaciones
     # pintamos la serie de camino aleatorio
-    plot(cumsum(y),type="l")
+    plot(cumsum(y),type="l", main="cusum")
     plot(acf(cumsum(y)))
 
 ```
 
-Existe una prueba denominada test de *Ljung-Box* que nos sirve para determiar si una serie temporal se comporta como ruido blanco o no. Si el resultado de `p` es un valor mayor que *0.05* se sugiere que los datos no son significativamente diferentes del ruido blanco, y si es inferio es posible que los datos sean predecibles pues se diferencian del ruido blanco, no son observaciones completamente independientes. Veremos esto en detalle en siguientes capítulos
+Existe una prueba denominada test de *Ljung-Box* que nos sirve para determinar si una serie temporal se comporta como ruido blanco o no. Si el resultado de `p` es un valor mayor que *0.05* se sugiere que los datos no son significativamente diferentes del ruido blanco, y si es inferior es posible que los datos sean predecibles pues se diferencian del ruido blanco, no son observaciones completamente independientes. Veremos esto en detalle en siguientes capítulos
 
 ## Estructura del libro
 
-Se ha ordenado el manual en un formato progresivo, de manera que sirva de libro de consulta constante durante el trabajo y también de guia continua de aprendizaje, desde las nociones básicas, a las más complejas.
+Se ha ordenado el manual en un formato progresivo, de manera que sirva de libro de consulta constante durante el trabajo y también de guía continua de aprendizaje, desde las nociones básicas, a las más complejas.
 
-En primer lugar haremos un resumen completo de las formas de medida del tiempo en R, lo que nos permitirá entender mejor el funcionamiento de las series temporales, así como obtener conocimientos para realizar analisis alternativos, no solo con objetos de serie temporal sino con otras muy comunes como `data frame`.
+En primer lugar haremos un resumen completo de las formas de medida del tiempo en R, lo que nos permitirá entender mejor el funcionamiento de las series temporales, así como obtener conocimientos para realizar análisis alternativos, no solo con objetos de serie temporal sino con otras muy comunes como `data frame`.
 
-El segundo capítul está dedicado a obtener datos, a crear series temporales para ejemplos, o a obtenerlas de los multiples origenes que puedan darse (web, ficheros...). Se aportan ejemplos concretos de librerías para descarga de datos financieros que son unos datos muy demandados por ususarios de $$R$$.
+El segundo capítulo está dedicado a obtener datos, a crear series temporales para ejemplos, o a obtenerlas de los múltiples orígenes que puedan darse (web, ficheros...). Se aportan ejemplos concretos de librerías para descarga de datos financieros que son unos datos muy demandados por usuarios de $$R$$.
 
-En el tercer capítulo entramos al grano describiendo cómo realizar gráficos de series temporales, haremos un completo repaso por las multiples funciones que existen, y que son más fáciles y atractivas.
-También se detallan tipos de graficos exclusivos de series temporales y que realizan analisis graficos muy completos, como los graficos estacionales, los de autocorrelación y retardo ect.
+En el tercer capítulo entramos al grano describiendo cómo realizar gráficos de series temporales, haremos un completo repaso por las múltiples funciones que existen, y que son más fáciles y atractivas.
+También se detallan tipos de gráficos exclusivos de series temporales y que realizan análisis gráficos muy completos, como los gráficos estacionales, los de autocorrelación y retardo etc.
 
 El cuarto capitulo está dedicado a las funciones de pronostico más simples y una introducción al completo paquete `forecast`que tiene elementos interesantes para los pronósticos.
 
-El siguiente caitulo se muestra una introducción al analisis de los residuos, que es una forma de evaluar la bondad de las predicciones que realizamos con los modelos de pronostico.
+El siguiente capitulo se muestra una introducción al análisis de los residuos, que es una forma de evaluar la bondad de las predicciones que realizamos con los modelos de pronostico.
 
-El sexto capitulo se entra en los metodos de pronostico por regresiñon lineal.
+El sexto capitulo se entra en los métodos de pronostico por regresión lineal.
 
 El séptimo detalla las transformaciones en los datos, y cómo se pueden conseguir con ellas mejores pronósticos con simples cambios de base de los datos.
 
@@ -166,11 +176,11 @@ En resumen:
     -  **POSIXct** es simplemente un numero entero que guarda el número de segundos desde 1/1/1970. Es útil cuando almacenamos tiempos en un data frame, pues ocupa menos espacio y solo una variable.
     -  **POSIXlt** es un objeto lista que almacena un bloque completo de información diferenciada, como el día, año, dia de la semana, día del mes etc.
 
-Para recordar la diferencia es util la nemotecnia de que el que finaliza en lt es una lista (`POSIXlt` $\rightarrow$ lt  = lista, `POSIXct` = entero) 
+Para recordar la diferencia es útil la nemotecnia de que el que finaliza en lt es una lista (`POSIXlt` $\rightarrow$ lt  = lista, `POSIXct` = entero) 
 
 ### librería `lubridate` funciones para fechas    
 
-Para trabajar con fechas y horas es casi imprescindible cargar la librería `lubridate`. Este paquete nos facilita el uso analitico de los datos fechados:
+Para trabajar con fechas y horas es casi imprescindible cargar la librería `lubridate`. Este paquete nos facilita el uso analítico de los datos fechados:
 
   * `Sys.Date()` $\rightarrow$ fecha actual del sistema operativo
   * `now()` $\rightarrow$  fecha y hora del momento actual
@@ -190,13 +200,13 @@ Una forma alternativa y útil para acceder a un valor concreto dentro de una fec
   * `sec`: segundos 
   * `min`: minutos de la fecha
   * `hour`: hora
-  * `mday`: dia del mes
+  * `mday`: día del mes
   * `mon`: mes
   * `year`: año desde 1900. Por lo que debemos sumar esto si queremos el año real
   * `wday`: día de la semana (0 domingo - 6 sábado)
 
 Veamos un ejemplo práctico:
-```{r}
+```{r ejemplo_lubridate}
   # guardamos la fecha actual del sistema en x
   x <- Sys.time()
   x
@@ -225,7 +235,7 @@ Veamos un ejemplo práctico:
 ### Conversión de texto a fecha `strptime` 
 Cuando el formato de partida que contiene la fecha es un texto, la función _strptime()_ es una manera sencilla de convertirlo en la clase de tiempo, es decir pasar una cadena en formato texto a la clase `POSIX`. La función toma como parámetros de entrada la lista de texto con las fechas y también hay que decirle qué formato tienen dichos textos de entrada.
 
-```{r}
+```{r ejem_strptime}
   # Convertir texto en fecha
   # Ejemplo 1
   x <- c("1 ene 1960 12:37", "2 abr 1990 23:00", "7 jul 1975 15:15")
@@ -365,14 +375,14 @@ Para empezar y aprender necesitamos datos y ejemplos sencillos en los que podamo
 Solo vamos a describir de forma breve solo algunas de las fuentes de datos. En primer lugar los propios datos de R base, que tiene bastantes, y después muchas librarías y funciones útiles para descarga de datos de series web. Otra forma es crear los datos uno mismo, por ello explicaremos también de forma sencilla cómo crear series de prueba aleatorias para uso de enseñanza y aprendizaje.
 
 ## Datos ejemplo en R base
-El programa básico de R contienen un montón de datos de ejemplo que podemos usar en la práctica. Estos datos están contenidos en el paquete `datasets` y contiene ejemplos de  multiples formatos: data frames, series ts, matrices, vectores.
+El programa básico de R contienen un montón de datos de ejemplo que podemos usar en la práctica. Estos datos están contenidos en el paquete `datasets` y contiene ejemplos de  múltiples formatos: data frames, series ts, matrices, vectores.
 
 Para ver todos los datos disponibles hay que ejecutar el comando `data()` en R, así conseguimos que nos muestre una lista completa de todos los objetos de datos almacenados de ejemplo. Entre estos hay varios de series temporales.
 
 
 Por ejemplo usaremos los datos de *Nile* que contiene observaciones de caudal máximo del río Nilo para este primer script.
 
-```{r}
+```{r datosNilo}
     # Ejemplos de datos en datasets:
     # Serie de caudales del Nilo
     str(Nile) # vemos qué contiene Nile
@@ -386,7 +396,7 @@ Por ejemplo usaremos los datos de *Nile* que contiene observaciones de caudal m�
     plot(sunspot.year)
 ```
 
-Muchas de las librarias relacionadas con los datos contienen ejemplos incluídos en el código del paquete. La libraría `forecast`que usaremos profusamente en este manual tiene varias series temporales de diferentes características que pueden usarse de ejemplo (gold, WWWusage...)
+Muchas de las librerías relacionadas con los datos contienen ejemplos incluidos en el código del paquete. La libraría `forecast`que usaremos profusamente en este manual tiene varias series temporales de diferentes características que pueden usarse de ejemplo (gold, WWWusage...)
 
 ### Resumen de datos temporales de ejemplo
 
@@ -412,7 +422,7 @@ Recordamos en un ejemplo cómo realizar la lectura de un fichero.
     datos<-read.table("filename.txt", sep="\t", header = FALSE, stringsAsFactors = FALSE)
 ```
 
-Otra opcion interesante es copiar directamnte del portapapeles o de una url web:
+Otra opción interesante es copiar directamente del porta-papeles o de una url web:
 
 ```{r eval=FALSE}
 # para leer lo copiado en el portapapeles de windwows
@@ -438,11 +448,11 @@ Además siempre podemos recurrir al paquete `rio` que simplifica la importación
 
 ## Lectura de datos de internet
 
-Existen multitud de webs de *open data* en las que podemos conseguir información de calidad de administraciones y gobiernos. Normalmente hay que bucear en ellas para buscar datos, y una vez que seleccionamos o tenemos a la vista la tabla resultado nos dan la opción de *descarga de ficheros* en un formato estandar como *csv*, o *json*. Copiando estos enlaces a R podemos hacer descargas directas de los datos a nuestro sistema.
+Existen multitud de webs de *open data* en las que podemos conseguir información de calidad de administraciones y gobiernos. Normalmente hay que bucear en ellas para buscar datos, y una vez que seleccionamos o tenemos a la vista la tabla resultado nos dan la opción de *descarga de ficheros* en un formato estándar como *csv*, o *json*. Copiando estos enlaces a R podemos hacer descargas directas de los datos a nuestro sistema.
 
-Vamos a poner un ejemplo de lectura de datos desde internet de la web de datos abiertos de la Región de Murcia (<http://datosabiertos.regiondemurcia.es>), es una de tantas paginas oficiales con adminstracion transparente y de volcado de datos públicos. Usaremos esta web para descargar el fichero de datos diarios de la estación meteorológica MU62 situada en la Alberca Murcia y pintar una gráfica de temperaturas máximas. Usarems el objeto temporal xts que veremos más adelante en este libro.
+Vamos a poner un ejemplo de lectura de datos desde Internet de la web de datos abiertos de la Región de Murcia (<http://datosabiertos.regiondemurcia.es>), es una de tantas paginas oficiales con administración transparente y de volcado de datos públicos. Usaremos esta web para descargar el fichero de datos diarios de la estación meteorológica MU62 situada en la Alberca Murcia y pintar una gráfica de temperaturas máximas. Usaremos el objeto temporal xts que veremos más adelante en este libro.
 
-```{r}
+```{r leerinternet}
     # leemos un fichero de datos meteorologicos obtenido de la web
     #  datosabiertos.regiondemurcia.es 
     # http://datosabiertos.regiondemurcia.es/carm/catalogo/medio-ambiente/informe-meteorologico-diario-carm-anos-2000-a-2017-estacion-meteorologica-mu62
@@ -471,7 +481,7 @@ Vamos a poner un ejemplo de lectura de datos desde internet de la web de datos a
 Existen varias opciones para trabajar con series temporales. La más simple es usar el objeto `ts` de R, pensado para series de tipo anual, mensual e intervalos regulares. Esta función sirve para crear y definir una serie temporal a partir de los datos, fechas y frecuencia: `y <- ts(datos, star=fecha_inicio, end= fecha_fin, frecuency=frecuencia)`. Como está pensada para datos anuales, una frecuencia de 12 indicará datos mensuales, de 4 trimestrales.
 
 
-```{r Series temporales}
+```{r series_temporales}
     require(forecast)
     # Creamos una serie de 24 datos aleatorios para trabajar
     # como suma acumulada de una normal x10
@@ -541,13 +551,13 @@ En muchas ocasiones nos interesa extraer una parte de la serie temporal, dividir
     plot(ano93)
 ```
 ### Objeto `xts`
-Aunque existen muchos objetos creados en R para el manejo de Series temporales, es `xts` el estandar que ha permitido la gestion eficiente de las series temporales y ha conseguido aglutinar en un mismo objeto las carcerísticas comunes a todos los que necesitan implementar valores de series en el tiempo.
+Aunque existen muchos objetos creados en R para el manejo de Series temporales, es `xts` el estándar que ha permitido la gestión eficiente de las series temporales y ha conseguido aglutinar en un mismo objeto las características comunes a todos los que necesitan implementar valores de series en el tiempo.
 
-Uno de los defectos que encontramos en el uso de `ts` como objeto temporal es que muchas veces obtenemos datos fechados sin que tengamos necesidad de indicar el inicio y fin del periodo. Un objeto `xts` almacena los datos como `coredata` y las fechas o tiempo como `index`admitiendo una variedad amplia de formatos de tiempo. En el nucleo de un objeto `xts` está `zoo`.
+Uno de los defectos que encontramos en el uso de `ts` como objeto temporal es que muchas veces obtenemos datos fechados sin que tengamos necesidad de indicar el inicio y fin del periodo. Un objeto `xts` almacena los datos como `coredata` y las fechas o tiempo como `index`admitiendo una variedad amplia de formatos de tiempo. En el núcleo de un objeto `xts` está `zoo`.
 
-En el ejemplo siguiente vermos muchas formas de usar `xts`, por ejemplo para extraer los datos de la fecha de una objeto `xts`se usa la función `index(objet_xts)`esto no ahorrará muchos dolores de cabeza buscando la forma trabajar con las fechas de la serie.
+En el ejemplo siguiente veremos muchas formas de usar `xts`, por ejemplo para extraer los datos de la fecha de una objeto `xts`se usa la función `index(objet_xts)`esto no ahorrará muchos dolores de cabeza buscando la forma trabajar con las fechas de la serie.
  
-```{r}
+```{r xts_ejemplo}
     library(xts)
     # creamos de nuevo una serie aleatoria temporal
     datostem <- cumsum(rnorm(60)*10)
@@ -603,11 +613,11 @@ En el ejemplo siguiente vermos muchas formas de usar `xts`, por ejemplo para ext
 
 
 ## Librería `Quandl`
-El paquete `Quandl` da acceso desde R a la ámplia base de datos del mismo nombre. `Quandl` ofrece datos financieros de múltiples fuentes, algunos de forma gratuita y otros en formato premium que requiere inscripción e incluso pago.
+El paquete `Quandl` da acceso desde R a la amplia base de datos del mismo nombre. `Quandl` ofrece datos financieros de múltiples fuentes, algunos de forma gratuita y otros en formato premium que requiere inscripción e incluso pago.
 
 El primer paso para usar `Quandl` es registrar un nuevo usuario en el sitio web. Poco después, hay que ir a la configuración de la cuenta y hacer clic en **API KEY**. Esta página debe mostrar un código, como este: *LDgg4c7zsTgLLxyHj*. Este código lo usaremos para la conexión.
 
-La gente `Quandl` ha desarrollado una API especifica para R bastante sencilla de usar. Hay muchos datos libres,como por ejemplo todos los datos economicos mundiales de la [FRED](https://fred.stlouisfed.org/categories). Para obtener el listado completo de datos que ofrece la librería podemo ir a su web y buscar el nombre de la serie especifica que buscamos <https://www.quandl.com/data/>. Veamos un ejemplo.
+La gente `Quandl` ha desarrollado una API especifica para R bastante sencilla de usar. Hay muchos datos libres,como por ejemplo todos los datos económicos mundiales de la [FRED](https://fred.stlouisfed.org/categories). Para obtener el listado completo de datos que ofrece la librería podemos ir a su web y buscar el nombre de la serie especifica que buscamos <https://www.quandl.com/data/>. Veamos un ejemplo.
 
 
 ```{r eval=FALSE}
@@ -625,7 +635,7 @@ La gente `Quandl` ha desarrollado una API especifica para R bastante sencilla de
     plot(poblacionESP, main="Evolución de la población en España",type= "l",col="red",lwd=2)
 ```
 
-![Poblacion de España]("imagenes/ESP_poblacion.png")
+![Poblacion de España](imagenes/ESP_poblacion.png)
 
 La web de `Quandl` incluso facilita el propio script de R para el dato que buscas, por ejemplo mira aquí: <https://www.quandl.com/data/FRED/GDPPOT-Real-Potential-Gross-Domestic-Product>
 
@@ -636,7 +646,7 @@ Para obtener datos de bolsa y valores `quandmod` es una librería interesante qu
 
 Para descargar un valor entre fechas es necesario conocer el TICKER del valor y usar la función como sigue, por cierto los datos se almacenan en un objeto `xts`.
 
-```{r}
+```{r ejemplo_quantmod}
     require(quantmod)
 
     acc1 <- getSymbols("TEF.MC", 
@@ -669,7 +679,7 @@ Esta librería es similar a `quantmod`, pero para análisis de varios valores pu
 ```
 
 ## ustyc
-El paquete `ustyc` permite la descarga de los datos de la curva de interes del  Departamento del Tesoro de EE.UU. La curva de intereses es el tipo que un inversor recibiría por los bonos a diferentes vencimientos. Los valores de los rendimientos se basan en los precios de los instrumentos de deuda del gobierno de EE.UU. negociados en el mercado secundario. 
+El paquete `ustyc` permite la descarga de los datos de la curva de interés del  Departamento del Tesoro de EE.UU. La curva de intereses es el tipo que un inversor recibiría por los bonos a diferentes vencimientos. Los valores de los rendimientos se basan en los precios de los instrumentos de deuda del gobierno de EE.UU. negociados en el mercado secundario. 
 
 Dado que estos bonos tienen un riesgo de incumplimiento mínimo, estos valores se utilizan comúnmente como puntos de referencia para rendimientos sin riesgo en los mercados financieros.
 
@@ -703,7 +713,8 @@ Uno de los paquetes más interesantes es `coinmarketcapr` con el que podemos des
 ### `RBitcoin`
 
 Otro paquete que vale la pena mencionar es [RBitcoin](https://github.com/jangorecki/Rbitcoin). Permite el acceso a los datos comerciales de varias casa de cambio de Bitcoin. Vamos a mostrar un ejemplo simple de importación de datos desde el exchange de intercambio [kraken](https://www.kraken.com/).
-```{r}
+
+```{r bitcoin}
     #install.packages("Rbitcoin", repos=c("https://jangorecki.gitlab.io/Rbitcoin","https://cran.rstudio.com"))
     
     library(Rbitcoin)
@@ -731,9 +742,9 @@ Otro paquete que vale la pena mencionar es [RBitcoin](https://github.com/jangore
 ```
 
 ### `coindeskr`
-Otro paquete interesante es `coindeskr`, que extrae de la web de noticias mas famosa del sector <https://www.coindesk.com/> el precio del bitcoin y otras cosas interesantes. La informeación de la libraría está en: <https://cran.r-project.org/web/packages/coindeskr/coindeskr.pdf>
+Otro paquete interesante es `coindeskr`, que extrae de la web de noticias mas famosa del sector <https://www.coindesk.com/> el precio del bitcoin y otras cosas interesantes. La información de la libraría está en: <https://cran.r-project.org/web/packages/coindeskr/coindeskr.pdf>
 
-```{r}
+```{r coindeskr}
     # Intalamos el paquete
     #install.packages('coindeskr')
     library(coindeskr) #R-Package connecting to Coindesk API
@@ -750,11 +761,11 @@ Otro paquete interesante es `coindeskr`, que extrae de la web de noticias mas fa
 ```
 
 ### Enlaces de datos
-Algunas paginas web dan un servicio directo de descarga de datos en formato csv, por ejemplo los datos de cambi de BTC están disponibles en este sistema en: <http://data.bitcoinity.org/markets/price_volume/all/USD?t=lb&vu=curr>
+Algunas paginas web dan un servicio directo de descarga de datos en formato csv, por ejemplo los datos de cambio de BTC están disponibles en este sistema en: <http://data.bitcoinity.org/markets/price_volume/all/USD?t=lb&vu=curr>
 
 De esta página hemos descargado el fichero *bitcoinity_data.csv* con los precios históricos y volumen de BTC.
 
-```{r}
+```{r ejem_rio}
     #Leemos el fichero
     require(rio)
     dat.bit<-import("bitcoinity_data.csv")
@@ -782,14 +793,14 @@ Hemos visto como manejar objetos de tiempo en R, con las clases: `Date`, `POSIXl
 
 En las series de intervalo regular nos podemos olvidar del fechado para trabajo analítico y quedarnos solo con el valor y el orden cronológico de dichos datos. Esto facilita el trabajo y amplia las posibilidades de cálculo.
 
-Vamos a ver en este capitulo cómo pintar objetos de serie temporal en R para producir desde gráficos sencillos a otros complejos con tratamiento implicito de los datos como los estacionales o los de ACF.
+Vamos a ver en este capitulo cómo pintar objetos de serie temporal en R para producir desde gráficos sencillos a otros complejos con tratamiento implícito de los datos como los estacionales o los de ACF.
 
 ## Funciones básicas de trazado de series temporales
-Cuando usamos el comando `plot()` para representar series temporales R reconoce automáticamente el origen de los datos y ejecuta la funcion `plot.ts()`. Esta función adapta los ejes de abcisas al formato de fecha que tenga la serie temporal así como algunas otras caracteristicas gráficas.
+Cuando usamos el comando `plot()` para representar series temporales R reconoce automáticamente el origen de los datos y ejecuta la función `plot.ts()`. Esta función adapta los ejes de abscisas al formato de fecha que tenga la serie temporal así como algunas otras características gráficas.
 
 Otra de las funciones que permiten dibujar series temporales es `ggplot`, y en concreto el comando `autoplot()`.
 
-```{r}
+```{r leer_datos_bolsa}
     # Vamos a leer unos datos temporales de la FRED 
     # para su representación grafica posterior:
     # desempleo datos ESP trimestrales
@@ -813,14 +824,14 @@ Otra de las funciones que permiten dibujar series temporales es `ggplot`, y en c
 
 
 ## Gráficas estandar 
-Describimos las funciónes sencillas para pintar grafics temporales. Es un asunto delicado, pues nos encontraremos que en muchas ocasiones, las funciones habitaules de trazado no pintan las graficas correctamente, o no interpretan las fechas que están almacenadas en lso objetos `ts`, `xts`, u otros.
-En ocasiones manejaremos dataframes, que son los objetos más comunies, y no sabremos cómo pintar las fechas correctamente, bien porque están en los nombres de fila o porque proceden de un objeto xts.
-Estas cuestiones las intentaremos acalarar en este apartado que será consulta obligada para el que se inicia en series temporales.
+Describimos las funciones sencillas para pintar gráficas temporales. Es un asunto delicado, pues nos encontraremos que en muchas ocasiones, las funciones habituales de trazado no pintan las gráficas correctamente, o no interpretan las fechas que están almacenadas en los objetos `ts`, `xts`, u otros.
+En ocasiones manejaremos dataframes, que son los objetos más comunes, y no sabremos cómo pintar las fechas correctamente, bien porque están en los nombres de fila o porque proceden de un objeto xts.
+Estas cuestiones las intentaremos aclarar en este apartado que será consulta obligada para el que se inicia en series temporales.
 
 ###`plot.xts`
 El formato más completo para trabajar con series temporales es `xts`, pues los datos de objetos `ts` están más limitados, por ejemplo requieren datos de frecuencia uniforme y sin huecos mientras que `xts`no.
 
-Por esto la forma habitual de pintar una grafica temporal es como `plot.xts()`, esta función produce gráfias por defecto que detectan las fechas y pinta correctamente los datos.
+Por esto la forma habitual de pintar una gráfica temporal es como `plot.xts()`, esta función produce gráficas por defecto que detectan las fechas y pinta correctamente los datos.
 
 ```{r eval=FALSE}
     # pintamos una grafica como plot.xts
@@ -830,7 +841,7 @@ Por esto la forma habitual de pintar una grafica temporal es como `plot.xts()`, 
 
 
 ### `autoplot` 
-Otro tipo de grafico comodín al que recurrir con frecuiencia es `autoplot`. Es una versión simplificada de `ggplot` que no necesita de la definición detallada de los parámetros y por tanto es más sencilla de usar que la función original de la libreria `ggplot2`. Cuando la funcion detecta una serie temporal la función real que ejecuta es `autoplot.zoo()`.
+Otro tipo de gráfico comodín al que recurrir con frecuencia es `autoplot`. Es una versión simplificada de `ggplot` que no necesita de la definición detallada de los parámetros y por tanto es más sencilla de usar que la función original de la librería `ggplot2`. Cuando la función detecta una serie temporal la función real que ejecuta es `autoplot.zoo()`.
 
 ```{r eval=FALSE}
     # pintamos una grafica como plot.xts
@@ -849,16 +860,16 @@ Otro tipo de grafico comodín al que recurrir con frecuiencia es `autoplot`. Es 
 ```
  
 ### `plot.zoo`
-Las funciones de trazado de `zoo`para serires temporales son de las mejores y están expresamente pensadas para crear graficas claras y atractivas. 
+Las funciones de trazado de `zoo`para series temporales son de las mejores y están expresamente pensadas para crear gráficas claras y atractivas. 
 
 ```{r eval=FALSE}
     # Muestra de plot.zoo
     plot.zoo(datosESP,col=c("blue","red"), xlab="Año")
 ```
 ### Otras funciones gráficas
-Existen multitud de librerías gráficas en R. Para usar con serie temporales suelen ser apropiadas las librerías financieras que contienen funciones grñaficas adaptadas y en algún caso muy buenas, tambien otras librerías especializadas en graficos interacticos como dygraphs, vemos algunas de ellas.
+Existen multitud de librerías gráficas en R. Para usar con serie temporales suelen ser apropiadas las librerías financieras que contienen funciones gratificas adaptadas y en algún caso muy buenas, también otras librerías especializadas en gráficos interactivos como dygraphs, vemos algunas de ellas.
 
-Las funciones `chartSeries` y `barChart` de la librería `quandmod`, o la función `chart.TimeSeries` de la librería  `PerformanceAnalytics` suelen dar buenos resultados vamos a ver ejemplos para nuestro curriculo.
+Las funciones `chartSeries` y `barChart` de la librería `quandmod`, o la función `chart.TimeSeries` de la librería  `PerformanceAnalytics` suelen dar buenos resultados vamos a ver ejemplos para nuestro currículo.
 
 ```{r eval=FALSE}
     # Ejemplo de graficas
@@ -877,19 +888,20 @@ Las funciones `chartSeries` y `barChart` de la librería `quandmod`, o la funci�
     dygraph(datosESP)
 ```
 
-![chartseries]("imagenes/chartseries.png")
+![chartseries](imagenes/charts.png) 
 
-![chart.TimeSeries]("imagenes/chart.TimeSeries.png")
+
+![chart.TimeSeries](imagenes/chart.TimeSeries.png)
 
 ## Gráficas estacionales
 
-La librería `forecast` contiene una funcion para representar *graficas estacionales* usando `ggseasonplot()`o también `seasonplot()`. Lo que hacen estas funciones es trazar una línea para cada ciclo completo y superponer todos juntos en la grafica. Es decir, para el caso de graficas con ciclos anuales, nos pintaría cada año superpuesto.
+La librería `forecast` contiene una función para representar *graficas estacionales* usando `ggseasonplot()`o también `seasonplot()`. Lo que hacen estas funciones es trazar una línea para cada ciclo completo y superponer todos juntos en la gráfica. Es decir, para el caso de gráficas con ciclos anuales, nos pintaría cada año superpuesto.
 
 Una gráfica estacional es similar a una gráfica de tiempo excepto que los datos se dibujan en las "temporadas" individuales en las que se observaron los datos.
 
 Estas funciones tienen una variante interesante que convierte los datos a coordenadas polares, donde el eje de tiempo es circular en lugar de horizontal. Para cambiar este sistema es suficiente con cambiar el argumento polar a VERDADERO.
 
-Otra opción es el formato de grafica de subseries, que hace una mini gráfica de cada temporada y marca el valor medio de cada temporada se muestra como una línea azul.
+Otra opción es el formato de gráfica de subseries, que hace una mini gráfica de cada temporada y marca el valor medio de cada temporada se muestra como una línea azul.
 
 
 ```{r}
@@ -916,7 +928,7 @@ Otra opción es el formato de grafica de subseries, que hace una mini gráfica d
 ## Graficas de dispersión o Scatterplots
 Si queremos hallar relaciones entre variables de una tabla temporal, tenderemos que hacer muchas gráficas de dispersión comparando cada observación de la variable x con la observación de la misma fecha de la variable y. 
 
-```{r}
+```{r ustyc_ejem}
     library(ustyc)
     # obtener lacurva de rendimiento
     my.yield.curve <- getYieldCurve(year = 2017)
@@ -941,9 +953,9 @@ Otra forma de ver los datos de series de tiempo es trazar cada observación cont
 
 Por ejemplo, trazar $$y_t$$ contra $$y_{t-_1}$$. Esto se llama **diagrama de retardo** porque está trazando la serie temporal contra los retardos (*lag*) de sí misma.
 
-Si calculamos el coeficiente de correlación de los datos de cada gráfica de retardo, obtenemos una gráfica muy interesante que llamamos **grafica de autocorrelación (ACF)** de la serie o **autocorrelogramas**. Esta gráfica nos aporta mucha infomación valiosa para interepretar los datos, la existencia o no de ciclos, la magnitud de estos y la relación entre intervalos temporales. En R la función que usamos para pintarla es `ggAcf()`.
+Si calculamos el coeficiente de correlación de los datos de cada gráfica de retardo, obtenemos una gráfica muy interesante que llamamos **grafica de autocorrelación (ACF)** de la serie o **autocorrelogramas**. Esta gráfica nos aporta mucha información valiosa para interpretar los datos, la existencia o no de ciclos, la magnitud de estos y la relación entre intervalos temporales. En R la función que usamos para pintarla es `ggAcf()`.
 
-La variación de la gráfica de autocorrelación según el retardo es lo que denominamos **gráfica de autocorrelación parcial (PACF)**, es como la derivada de la función ACF. Las graficas de PACF son importantes como veremos para determinar los parametros de los modelos de regresión lineal ARIMA.
+La variación de la gráfica de autocorrelación según el retardo es lo que denominamos **gráfica de autocorrelación parcial (PACF)**, es como la derivada de la función ACF. Las gráficas de PACF son importantes como veremos para determinar los parámetros de los modelos de regresión lineal ARIMA.
 
 ### Autocorrelación en series no estacionales
 
@@ -965,7 +977,7 @@ La variación de la gráfica de autocorrelación según el retardo es lo que den
 ### Autocorrelación en series en series cíclicas
 Cuando los datos son estacionales o cíclicos, el ACF alcanzará su punto máximo alrededor de los retrasos estacionales o en *la duración promedio del ciclo*.
 
-Vamos a investigar el fenómeno de manchas solares con los datos disponibles en la base de datos `sunspot.year` y  comprobar que exste un ciclo de 10-11 años en los que se repite la insensidad de las mismas.
+Vamos a investigar el fenómeno de manchas solares con los datos disponibles en la base de datos `sunspot.year` y  comprobar que existe un ciclo de 10-11 años en los que se repite la intensidad de las mismas.
 
 ```{r}
     require(ggplot2)
@@ -981,12 +993,12 @@ Vamos a investigar el fenómeno de manchas solares con los datos disponibles en 
     ggAcf(sunspot.year)
 ```
 
-Como vemos en el gráfico, las bandas azules indican los limites de ruido blanco. Si la autocorrelación es menor que esas marcas cuyo valor es $$\pm 2 / \sqrt{T}$$ donde $$T$$ es el numero de observaciones, es idicativo de que se trata de ruido blanco.
+Como vemos en el gráfico, las bandas azules indican los limites de ruido blanco. Si la autocorrelación es menor que esas marcas cuyo valor es $$\pm 2 / \sqrt{T}$$ donde $$T$$ es el numero de observaciones, es indicativo de que se trata de ruido blanco.
 
 ## Test de Ruido blanco
 El ruido blanco es un término que describe datos puramente aleatorios. Para comprobar si una serie es o no ruido blanco se puede realizar la prueba de *Ljung-Box* utilizando la función `Box.test (serie, lag = 24, fitdf = 0, tipo = "Ljung")`. 
 
-Si el resultado de `p` es un valor mayor que **0.05** se sugiere que los datos no son significativamente diferentes del ruido blanco, y si es inferio es posible que los datos sean predecibles pues se diferencian del ruido blanco.
+Si el resultado de `p` es un valor mayor que **0.05** se sugiere que los datos no son significativamente diferentes del ruido blanco, y si es inferior es posible que los datos sean predecibles pues se diferencian del ruido blanco.
 
 Vamos a comprobar la "Hipótesis del mercado eficiente" que establece que los precios de los activos reflejan toda la información disponible, por lo que no son predecibles  son independientes de los valores anteriores. Una consecuencia de esto es que los cambios diarios en los precios de las acciones deben comportarse como _ruido blanco_ (ignorando los dividendos, las tasas de interés y los costos de transacción). La consecuencia para los pronosticadores sería que el mejor pronóstico del precio futuro es el precio actual.
 
@@ -1011,10 +1023,10 @@ library("quantmod")
     # sobre la serie de diferencias
     Box.test(diff(Cl(valor1)), lag = 1, type = "Ljung")
 ```
-Como vemos el valor del test (p-value = 0.20) es bastante superior a 0.05, por lo que podemos afirmar que la serie de diferencias de las accioes de Google se comporta como ruido blanco y por tanto.
+Como vemos el valor del test (p-value = 0.20) es bastante superior a 0.05, por lo que podemos afirmar que la serie de diferencias de las acciones de Google se comporta como ruido blanco y por tanto.
 
 # PREDICIONES SIMPLES
-Un pronóstico es la estimación del valor fururo de una serie temporal. No es difícil hacer predicciones a futuro en base a unos datos iniciales, la prueba es que existen métodos simples que han sido usados profusamente incluso con buenos resultados. En otras ocasiones es necesario conocer estas fórmulas sencillas de pronóstico para comparar sus resultados con otros modelos complejos y estimar su calidad, recordemos que el *principio de parsimonia* nos indica que las soluciones más simples suelen ser las correctas.
+Un pronóstico es la estimación del valor futuro de una serie temporal. No es difícil hacer predicciones a futuro en base a unos datos iniciales, la prueba es que existen métodos simples que han sido usados profusamente incluso con buenos resultados. En otras ocasiones es necesario conocer estas fórmulas sencillas de pronóstico para comparar sus resultados con otros modelos complejos y estimar su calidad, recordemos que el *principio de parsimonia* nos indica que las soluciones más simples suelen ser las correctas.
 
 Veremos en este capítulo 4 modelos de pronóstico de formulación muy sencilla, contenidas dentro del paquete `forecast` de R:
 
@@ -1055,7 +1067,7 @@ Para los datos estacionales o cíclicos, una idea similar es establecer como pro
 `
 Para ambas funciones de pronóstico, puede establecerse un segundo parámetro que indica el número de valores hacia el futuro a pronosticar (argumento `h`).
 
-El paquete de R `forecast`nos facilita el uso de pronósticos sobre series temporales y contiene unas ayudas gráficas que representan la información de manera intuitiva y límpia.
+El paquete de R `forecast`nos facilita el uso de pronósticos sobre series temporales y contiene unas ayudas gráficas que representan la información de manera intuitiva y limpia.
 Además la clase principal de objetos en el paquete `forecast` contiene muchas funciones para manejarlos, incluyendo `summary()` y `autoplot()`.
 
 
@@ -1108,7 +1120,7 @@ Veamos un ejemplo de uso.
 ## Método lineal
 El método lineal extrapola los valores futuros en base a las dos ultimas observaciones, con una simple interpolación lineal de los datos.
 
-Este método está tambien incluido en el paquete `forecast` mediante la función `rwf(y, h, drift=TRUE)`.
+Este método está también incluido en el paquete `forecast` mediante la función `rwf(y, h, drift=TRUE)`.
 ```{r}
     # Pronostico lineal
     # usaremos la serie del oro
@@ -1128,7 +1140,7 @@ Llamamos *residuos* ($$e_t$$) a las diferencias entre cada valor pronosticado $$
 
 $$ e_t = y_t - \hat{y_t}$$
 
-Por ejemplo, es bueno que los residuos sean pequeños, que tengan un comportamiento de ruido blanco y distribución normal de sus valores, esto indicaría que la parte de residuo **que no pronostica el modelo** es mínima e impredecible. En jerga estadística (regresion lineal) lo que se busca es que se cumplan en los residuos las premisas de linealidad, homocedasticidad y normalidad (<http://tabarefernandez.tripod.com/coco2.pdf>).
+Por ejemplo, es bueno que los residuos sean pequeños, que tengan un comportamiento de ruido blanco y distribución normal de sus valores, esto indicaría que la parte de residuo **que no pronostica el modelo** es mínima e impredecible. En jerga estadística (regresión lineal) lo que se busca es que se cumplan en los residuos las premisas de linealidad, homocedasticidad y normalidad (<http://tabarefernandez.tripod.com/coco2.pdf>).
 
 Por tanto, para analizar el buen comportamiento del modelo de pronóstico es importante verificar siempre que los **residuos** se comporten bien, esto es: sin valores atípicos, ni patrones y que se asemejen al ruido blanco y que se distribuya normalmente. 
 
@@ -1136,7 +1148,7 @@ La función `checkresiduals()` se usa para verificar estas características y en
 
 Para probar esta función es habitual el uso de la función de tubería (*%>%*) en el código R. Esta función es útil cuando hay funciones anidadas, en las que el resultado de una es tomado de entrada en la siguiente. Las funciones de tubería hacen que el código sea mucho más fácil de leer. 
 
-Vamos a calcular los residuos de las funciones de pronóstico anteriores usando tambien la función tubería.
+Vamos a calcular los residuos de las funciones de pronóstico anteriores usando también la función tubería.
 
 ```{r}
     require(quantmod)
@@ -1182,13 +1194,13 @@ Antes de comenzar a trabajar en un modelo de pronóstico sobre datos, es preciso
  1. un conjunto o varios para el **entrenamiento** del modelo
  2. otro conjunto con datos diferentes de **prueba** del modelo
  
-El conjunto de entrenamiento será el que nos de los párámetros finales de clibración del modelo y debe ser diferente al conjunto de prueba, pues de otro modo, estaríamos sobreajustando los parámetros y caeremos en lo que se denomina (en inglés) *overfitting*, sobreajuste.
+El conjunto de entrenamiento será el que nos de los parámetros finales de calibración del modelo y debe ser diferente al conjunto de prueba, pues de otro modo, estaríamos sobreajustando los parámetros y caeremos en lo que se denomina (en inglés) *overfitting*, sobreajuste.
 
-No se puede evaluar la bondad de un modelo de predicción sobre datos que se han utilizado para calibrar el modelo, pues los resultados serían falsos, no adecuadso. Un modelo sobreajustado  da muy buenos pronósticos en los datos de entrenamiento, pero suele dar malos en los datos de prueba. Esto indica que el modelo no ha detectado la señal principal en los datos y se ha centrado en el ruido, aunque tambien hay que comprobar que no exista un *bias* o desviación en los conjuntos de muestra.
+No se puede evaluar la bondad de un modelo de predicción sobre datos que se han utilizado para calibrar el modelo, pues los resultados serían falsos, no adecuados. Un modelo sobreajustado  da muy buenos pronósticos en los datos de entrenamiento, pero suele dar malos en los datos de prueba. Esto indica que el modelo no ha detectado la señal principal en los datos y se ha centrado en el ruido, aunque también hay que comprobar que no exista un *bias* o desviación en los conjuntos de muestra.
 
 Se logra por tanto un buen resultado, pero a costa de usar demasiados datos observables, lo que suele conllevar fallos en la predicción cuando se incluyen datos nuevos. El sobre-calibrado o sobreajuste es una muestra más del *principio de parsimonia*, o principio de la navaja de Ockham, que dice que en **igualdad de condiciones, la explicación más sencilla suele ser la más probable**. 
 
-Por esto es necesario **siempre** reservar una cantida de datos para descubrir sus posibles relaciones y calibrar el modelo y otro conjunto significativo de observaciones distintas para las pruebas del mismo.
+Por esto es necesario **siempre** reservar una cantidad de datos para descubrir sus posibles relaciones y calibrar el modelo y otro conjunto significativo de observaciones distintas para las pruebas del mismo.
 
 ### Funciones para dividir una muestra
 Una función que se puede usar para crear los grupos de entrenamiento y de prueba es `subset()` del paquete `forecast` en caso de series `ts`, que devuelve un subconjunto de una serie temporal donde los argumentos opcionales de inicio y fin se especifican usando valores de índice.
@@ -1226,14 +1238,14 @@ Otra función que nos vale para dividir la muestra es `window()`, o las funcione
     print(paste("Num datos conjunto prueba=", length(test)))
 ```
 ## Medidas del error de predicción 
-Dado que el residuo o error de las prediciones dependen de las escala de los datos observados, debemos buscar una fórmula que nos permita comparar diferentes modelos de ajuste sin la dependencia esta escala incial de los datos.
+Dado que el residuo o error de las predicciones dependen de las escala de los datos observados, debemos buscar una fórmula que nos permita comparar diferentes modelos de ajuste sin la dependencia esta escala inicial de los datos.
 
-Hay varios indicadores en este sentido, por ejemplo los dos siguientes ns permiten comparar diferentes modelos en una misma serie, siendo el MAE más facil de interpretar.
+Hay varios indicadores en este sentido, por ejemplo los dos siguientes ns permiten comparar diferentes modelos en una misma serie, siendo el MAE más fácil de interpretar.
 
   * **MAE**(Mean absolute error) o valor absoluto medio del error $$MAE=media(|e_t|)$$
-  * **RMSE** o raiz cuadrada del error medio cuadrático = $$ RMSE=\sqrt{media(e_t^2)}$$
+  * **RMSE** o raíz cuadrada del error medio cuadrático = $$ RMSE=\sqrt{media(e_t^2)}$$
 
-Otras de las medidas como el MAPE permiten desescalar los resultados a porcentaje lo que pemite comparar diferentes series y modelos. Todas estas medidas tienen sus ventajas y desventajas, por ejemplo MAPE sobrevalora los errres positivos, o las escalas con un cero, por lo que hay otras mediciones como **sMAPE** o incluso el **MASE** que tratan de paliar estas consecuencias con mejores , pero más complejos estimadores.
+Otras de las medidas como el MAPE permiten des escalar los resultados a porcentaje lo que permite comparar diferentes series y modelos. Todas estas medidas tienen sus ventajas y desventajas, por ejemplo MAPE sobrevalora los errores positivos, o las escalas con un cero, por lo que hay otras mediciones como **sMAPE** o incluso el **MASE** que tratan de paliar estas consecuencias con mejores , pero más complejos estimadores.
  
  * **MAPE** (mean absolute mean error) $$MAPE= mean(|100e_t/y_t|)$$ este valor es el mejor par series con estacionalidad.
 
@@ -1244,8 +1256,8 @@ La función `accuracy(f,x,...)` del paquete `forecast`calcula varias estadístic
  * **f** es un objeto de clase `forecast`
  * **x** es un vector numérico o una serie temporal
 
-Entre los estadísticos que da están los vistos en el aprtado anterior como RMSE, MSE etc...
-Cuanto menor sea el valor de esta medidas, por ejemplo de RMSE, mejor es el pronóstico, más se ajusta a lso datos observados.
+Entre los estadísticos que da están los vistos en el apartado anterior como RMSE, MSE etc...
+Cuanto menor sea el valor de esta medidas, por ejemplo de RMSE, mejor es el pronóstico, más se ajusta a los datos observados.
 
 Vamos a comparar dos modelos de pronostico con esta función para ver cual es el mejor.
 
@@ -1294,7 +1306,7 @@ Otra de las funciones que nos permiten evaluar la bondad de un modelo de pronós
     args(tsCV)
 ```
 
-La validación cruzada consiste en aplicar calcular los pronósticos con datos de la serie de prueba tomando cada vez un elemento más de la misma serie, y tratandolos como series independientes.
+La validación cruzada consiste en aplicar calcular los pronósticos con datos de la serie de prueba tomando cada vez un elemento más de la misma serie, y tratándolos como series independientes.
 Es decir, considera como conjunto de entrenamiento todos los puntos de la serie hasta uno determinado, y con eso pronostica una serie de pasos adelante, y repite esta misma acción considerando un nuevo intervalo.
 
 
@@ -1337,12 +1349,12 @@ Veamos un ejemplo en el que calcularemos el MSE (Mean Square Error= erro medio a
       ggplot(aes(x = h, y = MSE)) + geom_point()  
    
 ```
-Como vemos en el ejemplo anterior a mayor horizonte de pronsóstico, el error MSE es mayor.
+Como vemos en el ejemplo anterior a mayor horizonte de pronóstico, el error MSE es mayor.
 
 ## Banda de predicción
-Los graficos que estamos usando por defecto para representar pronósticos en la libraría `forecast` incluyen, no solo el valor predicho para cada horizonte de pronostico, sino también unas bandas de colores que indican los intervalos de predición del 80 y 95%.
+Los gráficos que estamos usando por defecto para representar pronósticos en la libraría `forecast` incluyen, no solo el valor predicho para cada horizonte de pronostico, sino también unas bandas de colores que indican los intervalos de predicción del 80 y 95%.
 
-Se trata de un rango de probabilidad en los que se espera que esté el pronostico, suponiendo que las prediciones tengan una distribución normal.
+Se trata de un rango de probabilidad en los que se espera que esté el pronostico, suponiendo que las predicciones tengan una distribución normal.
 
 ```{r}
     # Bandas de predición de pronóstico
@@ -1354,7 +1366,7 @@ Se trata de un rango de probabilidad en los que se espera que esté el pronostic
 
 # MODELOS DE REGRESIÓN LINEAL
 
-En capítulos anteriores hemos visto algunos modelos muy simples, como el modelo ingenuo que pronostica el último valor observado como predicción futura. Vamoa a estudiar en este capítulo otros modelos para series temporales basados en regresión lineal.
+En capítulos anteriores hemos visto algunos modelos muy simples, como el modelo ingenuo que pronostica el último valor observado como predicción futura. Vamos a estudiar en este capítulo otros modelos para series temporales basados en regresión lineal.
 
 ## Regresión lineal simple
 Cuando tenemos dos variables relacionadas se puede utilizar la regresión lineal para estimar una de ellas a partir del valor de la otra. Para esto usaremos las funciones gráficas que devuelven directamente el modelo de  regresión de mejor ajuste, o las funciones como `lm()` que aportan los parámetros de la regresión.
@@ -1414,7 +1426,7 @@ Cuando tenemos dos variables relacionadas se puede utilizar la regresión lineal
 ```
 
 ## Correlación entre variables
-Si tenemos varias variables relacionadas, una forma de ver graficamente los coeficientes de correpación entre cada par de variables es usar la función `ggpairs()` del paquete **GGally**. El resultado nos dá la matriz gráfica de autocorrepaciones entre las series.
+Si tenemos varias variables relacionadas, una forma de ver gráficamente los coeficientes de correlación entre cada par de variables es usar la función `ggpairs()` del paquete **GGally**. El resultado nos da la matriz gráfica de autocorrelaciones entre las series.
 
 
 ```{r}
@@ -1441,7 +1453,7 @@ Si tenemos varias variables relacionadas, una forma de ver graficamente los coef
 ```
 
 ## Regresión múltiple
-La función `tlsm()` del paquete forecast, realiza pronósticos de regresion lineal a partir de la descomposición de una serie temporal. El modelo permite especificar una formula de pronostico. 
+La función `tlsm()` del paquete forecast, realiza pronósticos de regresión lineal a partir de la descomposición de una serie temporal. El modelo permite especificar una formula de pronostico. 
 
 ```{r}
     require(forecast)
@@ -1462,7 +1474,7 @@ La función `tlsm()` del paquete forecast, realiza pronósticos de regresion lin
 ## Suavizamiento exponencial simple
 La función `ses()` produce pronósticos de regresión obtenidos usando la suavización exponencial simple (SES). Los parámetros óptimos los obtiene la función internamente minimizando el error por mínimos cuadrados. El uso práctico de la serie es simple, solo se necesita especificar la serie de tiempo y el horizonte de pronóstico. 
 
-Se usa este método de pronostico en series que no reflejan claramente ni tendencia ni estacionalidad, series de difécil pronóstico, en las que pueden dar mejores resultados incluso los métodos ingenuos.
+Se usa este método de pronostico en series que no reflejan claramente ni tendencia ni estacionalidad, series de difícil pronóstico, en las que pueden dar mejores resultados incluso los métodos ingenuos.
 
 La función `fitted()` se puede utilizar para pintar los datos pronosticados en un paso adelante con el modelo.
 
@@ -1482,7 +1494,7 @@ La función `fitted()` se puede utilizar para pintar los datos pronosticados en 
 Como vemos el modelo SES es bastante simple y los resultados difieren poco del modelo ingenuo (`naive()`). 
 
 ## Holt para tendendicas
-El método de tendencia local de Holt se implementa en la función `holt()`, es aplicable a series con una clara tendencia, no es aplicable a series estacionales. La función tiene el parametro damped que sirve para aplicar un suavizado a la curva de pronostico.
+El método de tendencia local de Holt se implementa en la función `holt()`, es aplicable a series con una clara tendencia, no es aplicable a series estacionales. La función tiene el parámetro damped que sirve para aplicar un suavizado a la curva de pronostico.
 
 ```{r}
     # Pronostico de hotl para la serie diaria de DAX en 1991-1994
@@ -1517,11 +1529,11 @@ La función `hw()` produce pronósticos usando el método de Holt-Winters espec�
  
 ```
 
-![prediccion de oro con holtwinter]("imagenes/holtwinter.png")
+![prediccion de oro con holtwinter](imagenes/holtwinter.png)
 
 
 ## Predicción automática con `ets`
-La función ETS (alisamiento exponencial), proporciona una forma completamente automática de realizar pronósticos para una amplia gama de series de temporales. La llamada de la funcion es algo diferente, pues `ets()` ajusa los parámetros del modelo, pero para realizar el pronóstico. Digamos que selecciona previamente qué modelo elegir que se ajuste mejor, y después lousaremos como un función más a través de la llamada a `forecast()`.
+La función ETS (alisamiento exponencial), proporciona una forma completamente automática de realizar pronósticos para una amplia gama de series de temporales. La llamada de la función es algo diferente, pues `ets()` ajusta los parámetros del modelo, pero para realizar el pronóstico. Digamos que selecciona previamente qué modelo elegir que se ajuste mejor, y después lo usaremos como un función más a través de la llamada a `forecast()`.
 
 ```{r}
     # Calculamos un pronóstico automático con ETS
@@ -1553,6 +1565,7 @@ Como vemos el pronostico de `ets()` no siempre es bueno, incluso en series cícl
 
 ```{r}
     # Pintamos la serie lynx{datasets}
+    require(ggplot2)
     autoplot(lynx)
     
     # Ajustamos un modelo ets a la serie
@@ -1575,15 +1588,15 @@ Como vemos el pronostico de `ets()` no siempre es bueno, incluso en series cícl
 
 El propósito de la transformación de series temporales es simplificar los patrones en los datos  y quitar las fuentes de variación evidentes. Se trata en definitiva, de poder aplicar los métodos de pronóstico estadístico y por tanto de obtener con la transformación una serie estacionaria sobre la que trabajar mejor.
 
-Las transformaciónes de las series temporales extraen la esencia de los datos, y permiten analizar los componentes de tendencia, ciclo y variabilidad de forma independiente y mejorar la predicción.
+Las transformaciones de las series temporales extraen la esencia de los datos, y permiten analizar los componentes de tendencia, ciclo y variabilidad de forma independiente y mejorar la predicción.
 
-La descomposición es la separación en componentes de una serie temporal,buscando tambien la simplificación del analisis en grupos sencillos. La principal descomposición que realizamos es extraer de la serie original las componentes de tendencia, ciclo y remanente o parte que no se puede explicar.
+La descomposición es la separación en componentes de una serie temporal,buscando también la simplificación del análisis en grupos sencillos. La principal descomposición que realizamos es extraer de la serie original las componentes de tendencia, ciclo y remanente o parte que no se puede explicar.
 
 ## Diferenciación
-La diferrenciación de una serie consiste en tranformar la original en otra con las diferencias o incrementos en cada x pasos. Es decir, la resta de dos valores consecutivos de la serie. Con esto conseguimos en muchos casos **eliminar la tendencia de la serie** y obtener una variable estacionaria.
+La diferenciación de una serie consiste en transformar la original en otra con las diferencias o incrementos en cada x pasos. Es decir, la resta de dos valores consecutivos de la serie. Con esto conseguimos en muchos casos **eliminar la tendencia de la serie** y obtener una variable estacionaria.
 La diferenciación elimina patrones sistemáticos como tendencia y estacionalidad de los datos. 
 
-La función `diff()` aplicada sobre una serie temporal nos devuelve la serie diferenciada. Como veremos en el siguiente ejemplo en la serie diferenciada la gráfic de acf cae inmediatamente a valores próximos a cero, lo que indica que se trata de una serie estacionaria. Por contra las series no estacionarias tienen valores altos y positivos como la serie original. 
+La función `diff()` aplicada sobre una serie temporal nos devuelve la serie diferenciada. Como veremos en el siguiente ejemplo en la serie diferenciada la gráfica de acf cae inmediatamente a valores próximos a cero, lo que indica que se trata de una serie estacionaria. Por contra las series no estacionarias tienen valores altos y positivos como la serie original. 
 
 ```{r eval=FALSE}
     require(quantmod)
@@ -1639,7 +1652,7 @@ Critical value for a significance level of:
                 10pct  5pct 2.5pct  1pct
 critical values 0.347 0.463  0.574 0.739
 ```
-El valor del test para la serie original de 8.4046 es muy alto indicando que habría que diferenciar la serie. PAra ver que valor de retardo lag de diferencia es apropiado podemos usar la función `ndiffs(serie)`.
+El valor del test para la serie original de 8.4046 es muy alto indicando que habría que diferenciar la serie. Para ver que valor de retardo lag de diferencia es apropiado podemos usar la función `ndiffs(serie)`.
 
 
 
@@ -1659,9 +1672,9 @@ Por ejemplo, en la serie `AirPassengers` vemos ciclos estacionales que además c
 ```
 
 ## Logaritmo
-Una de las transformaciones clasicas de la series con comportamientos exponenciales o de gran variabilidad es el logaritmo. Haciendo un log de la serie conseguimos cambiar las tendencias exponenciales a lineales y las variaciones e vuelven más uniformes por lo que podemos trabajar con las series de manera habitual.
+Una de las transformaciones clásicas de la series con comportamientos exponenciales o de gran variabilidad es el logaritmo. Haciendo un log de la serie conseguimos cambiar las tendencias exponenciales a lineales y las variaciones e vuelven más uniformes por lo que podemos trabajar con las series de manera habitual.
 
-Vamos a ver los resultados para una serie como el precio del Bitcoin con eneorme variación de escala
+Vamos a ver los resultados para una serie como el precio del Bitcoin con enorme variación de escala
 
 ```{r}
     # Intalamos el paquete
@@ -1675,7 +1688,7 @@ Vamos a ver los resultados para una serie como el precio del Bitcoin con eneorme
     
 ```
 
-Vamos a ver un ejemlo:
+Vamos a ver un ejemplo:
 
 ```{r}
 
@@ -1689,20 +1702,20 @@ Vamos a ver un ejemlo:
 ## Descomposición de series
 ### `decompose`
 Es un método clásico para series con estacionalidad. Se puede aplicar con dos tipos, el aditivo y el multiplicativo, uno suma y otro divide la estacionalidad en proporción al valor observado de tendencia.
-El resultado de aplicar las funiones de descomposición de series `decompose()` es una terna de series formado por el componente de tendencia, el de ciclo y el que resta que podemos decir es el aleatorio.
+El resultado de aplicar las funciones de descomposición de series `decompose()` es una terna de series formado por el componente de tendencia, el de ciclo y el que resta que podemos decir es el aleatorio.
 
 Veamos un ejemplo:
 
-```{r}
+```{r decompose}
 AirPassengers %>% decompose(type="multiplicative") %>%
   autoplot() + xlab("Year") +
   ggtitle("Descomposición de la serie de pasajeros")
 ```
 
 ### `seasonal`
-Otro método de descomposición de series es el `X11` que en R está programado dentro del paquete `seasonal`. Tienen parecidas caracteristicas, pero aporta algunos gráficos interesantes que vamos a mostrar. Una de las novedades es que el componente estacional no es constante.
+Otro método de descomposición de series es el `X11` que en R está programado dentro del paquete `seasonal`. Tienen parecidas características, pero aporta algunos gráficos interesantes que vamos a mostrar. Una de las novedades es que el componente estacional no es constante.
 
-```{r}
+```{r x11}
     require(seasonal)
     AirPassengers %>% seas(x11="") -> fit
     
@@ -1721,19 +1734,19 @@ Otro método de descomposición de series es el `X11` que en R está programado 
     # otro grafico interesante
     fit %>% seasonal() %>% ggsubseriesplot() + ylab("Temporada") 
 ```
-El paquete `seasonal` da acceso a las series descompuestas con las funciones  `seasadj()`, `trendcycle()` and `remainder()` (estacional, tendencia y resto).
+El paquete `seasonal` da acceso a las series descompuestas con las funciones  `seasadj()`, `trendcycle()` y `remainder()` (estacional, tendencia y resto).
 
 ### `stl`
-Como última alterntiva veremos la funcion `stl()` que también realiza la descomposción de una serie estacional, con la ventaja de que no solo es válido como las anteriores para series de ciclos mensuales, anuales o semanales, es una formulación más aseptica, y válida para cualquier frecuencia.
+Como última alternativa veremos la función `stl()` que también realiza la descomposición de una serie estacional, con la ventaja de que no solo es válido como las anteriores para series de ciclos mensuales, anuales o semanales, es una formulación más aséptica, y válida para cualquier frecuencia.
 
-Además permite que el componente estacional varíe en el tiempo, no como `decompose`, y es más robusto frente a outliers o valores fuera de rango, pero hay que tener cuidado con estas funciones, pues no tienen ajuste automatico a calendarios y por tanto en series con secuencias discontinuas como datos diarios de bolsa (donde faltan los fines de semana y festivos) hay -previamente- que hacer alguna transformación temporal.
+Además permite que el componente estacional varíe en el tiempo, no como `decompose`, y es más robusto frente a outliers o valores fuera de rango, pero hay que tener cuidado con estas funciones, pues no tienen ajuste automático a calendarios y por tanto en series con secuencias discontinuas como datos diarios de bolsa (donde faltan los fines de semana y festivos) hay -previamente- que hacer alguna transformación temporal.
 
 Los parámetros de la función son:
 
  - *t.window* que controla la tendencia (indica el lag que se toma en consideración para la tendencia)
  - *s.window* que controla el ciclo. (si se pone ="periodic" lo calcula automáticamente)
  
-```{r}
+```{r stl_decompose}
 AirPassengers %>%
   stl(t.window=12, s.window="periodic", robust=TRUE) %>%
   autoplot()
@@ -1741,58 +1754,55 @@ AirPassengers %>%
 
 
 ## Pronosticos sobre descomposiciones de series
-Una vez hemos realizado una descomposición de la serie que creemos adecuada, pordemos realizar pronosticos sobre los datos, y modular estos según cada componente de la descomposición. Esto es, podemos ejecutar un pronostico de tendencia sobre la parte de tendencia de la descomposición, y aplicarle luego la modulación que aporta la arte de estacionalidad.
+Una vez hemos realizado una descomposición de la serie que creemos adecuada, podremos realizar pronósticos sobre los datos, y modular estos según cada componente de la descomposición. Esto es, podemos ejecutar un pronostico de tendencia sobre la parte de tendencia de la descomposición, y aplicarle luego la modulación que aporta la arte de estacionalidad.
 
 ```{r stl, eval=FALSE}
-
-# creamos una descomposición de la serie gold 
-smodel<- stl(gold, s.window="periodic") 
-autoplot(smodel)
-# Creamos un pronostico con el metodo drif de la parte de estacionalidad ajustada de la serie descompuesta
-smodel %>% seasadj() %>%  rwf(24,drift=TRUE)  %>% autoplot()
-
-# Idem pronostico con el metodo drif de la parte de tendencia de la descomposición
-# para 12 meses
-smodel %>% trendcycle() %>%  rwf(12,drift=TRUE)  %>% autoplot()
-
-# lo mismo usandola función forecast
-smodel %>% forecast(method="rwdrift") %>% autoplot()
-# lo mismo usando la función stlf en la que hay que indicar el método de pronostico
-autoplot(stlf(gold, method='rwdrift'))
-
-
-#Podemos usar un modelo ets
-smodel<- ets(gold) 
-smodel %>% forecast() %>% autoplot()
-
+    # creamos una descomposición de la serie gold 
+    smodel<- stl(gold, s.window="periodic") 
+    autoplot(smodel)
+    # Creamos un pronostico con el metodo drif de la parte de estacionalidad ajustada de la serie descompuesta
+    smodel %>% seasadj() %>%  rwf(24,drift=TRUE)  %>% autoplot()
+    
+    # Idem pronostico con el metodo drif de la parte de tendencia de la descomposición
+    # para 12 meses
+    smodel %>% trendcycle() %>%  rwf(12,drift=TRUE)  %>% autoplot()
+    
+    # lo mismo usandola función forecast
+    smodel %>% forecast(method="rwdrift") %>% autoplot()
+    # lo mismo usando la función stlf en la que hay que indicar el método de pronostico
+    autoplot(stlf(gold, method='rwdrift'))
+    
+    #Podemos usar un modelo ets
+    smodel<- ets(gold) 
+    smodel %>% forecast() %>% autoplot()
 ```
 
-![autoplot(smodel)]("imagenes/stl1.png")
+![autoplot(smodel)](imagenes/stl1.png)
 
-![smodel %>% seasadj() %>%  rwf(24,drift=TRUE)  %>% autoplot()]("imagenes/stl2.png")
+![smodel %>% seasadj() %>%  rwf(24,drift=TRUE)  %>% autoplot()](imagenes/stl2.png)
 
-![smodel %>% trendcycle() %>%  rwf(12,drift=TRUE)]("imagenes/stl3.png")
+![smodel %>% trendcycle() %>%  rwf(12,drift=TRUE)](imagenes/stl3.png)
 
-![stl modelo]("imagenes/stlrwdrift.png")
+![stl modelo](imagenes/stlrwdrift.png)
 
-![pronosico con ets modelo]("imagenes/stl_ets.png")
+![pronosico con ets modelo](imagenes/stl_ets.png)
 
 # MODELOS ARIMA 
 
-Los modelos de regresión exponencial y los ARIMA (o modelos de media movil integrada autoregresiva) son los más ampliamente utilizados para el pronóstico de series temporales. Los primeros se basan en la tendencia y estacionalidad de los datos y los ARIMA en la autocorrelación de las serie.
+Los modelos de regresión exponencial y los ARIMA (o modelos de media móvil integrada auto-regresiva) son los más amplia mente utilizados para el pronóstico de series temporales. Los primeros se basan en la tendencia y estacionalidad de los datos y los ARIMA en la autocorrelación de las serie.
 
 ## AR
-Los modelos ARMA predicen los valores futuros mediante la combinación lineal de los valores pasados. Un modelos autoregresivo sigue la siguiente ecuación: $$y_t=c+a_1y_t_−1+a_2y_t_−2+ ⋯+a_ y_t−p+e_t$$
+Los modelos ARMA predicen los valores futuros mediante la combinación lineal de los valores pasados. Un modelos  sigue la siguiente ecuación: $$y_t=c+a_1y_t_−1+a_2y_t_−2+ ⋯+a_ y_t−p+e_t$$
 
 ## MA 
 Los modelos MA predicen valores futuros mediante la combinación lineal de los errores de pronostico pasados.
 
 ## ARIMA 
-Combinando diferenciación con modelos autoregesivos con media movil tenermos los ARIMA. La nomeclatura de los modelos ARIMA(p,d,q) significa:
+Combinando diferenciación con modelos autorregresivos con media móvil tenemos los ARIMA. La nomenclatura de los modelos ARIMA(p,d,q) significa:
 
 - p= orden de la parte autorregresiva
 - d = grado de diferenciación del modelo
-- q = orden de la media movil
+- q = orden de la media móvil
 
 Muchos de los modelos que hemos descrito son casos especiales de ARIMA:
 
@@ -1831,11 +1841,11 @@ Veamos un ejemplo de uso:
 
 
 ## Modelos ARIMA automáticos 
-La función `auto.arima()` da como resultado una formula del tipo siguiente: `ARIMA (p,d,q) (P,D,Q) [m]`, pr ejemplo ARIMA (0,1,4) (0,1,1) [12].
+La función `auto.arima()` da como resultado una formula del tipo siguiente: `ARIMA (p,d,q) (P,D,Q) [m]`, por ejemplo ARIMA (0,1,4) (0,1,1) [12].
 
 el significado de cada letra puede verse en la ayuda de la función, pero básicamente d es el orden de la primera diferenciación de la serie, D el de la frecuencia estacional
  
-La función `auto.arima()` también funciona con datos estacionales, aunque hay que establecer `lambda = 0` (de BoxcCox) en la función para que la transformación de estaciionalidad de deshaga, es decir que el modelo se ajustará a los datos transformados, y que los pronósticos se transformarán de nuevo a la escala original.
+La función `auto.arima()` también funciona con datos estacionales, aunque hay que establecer `lambda = 0` (de BoxCox) en la función para que la transformación de estacionalidad de deshaga, es decir que el modelo se ajustará a los datos transformados, y que los pronósticos se transformarán de nuevo a la escala original.
 
 
 Vamos a ver un ejemplo sobre los datos de precios del bitcoin.
@@ -1869,7 +1879,7 @@ fit2 %>% forecast(h=60) %>% autoplot()
 ```
 
 ### Comparando auto.arima() y ets()
-Vamos a comparar los dos métodos semi automáticos de clclo de pronosticos, el modelo ets() y el auto.arima(). Lo haremos sobre los datos históricos de caudales maximos del río Nilo. Distinguiremos dos conjuntos de datos una de ensayo y otro de test.
+Vamos a comparar los dos métodos semi automáticos de ciclo de pronósticos, el modelo ets() y el auto.arima(). Lo haremos sobre los datos históricos de caudales máximos del río Nilo. Distinguiremos dos conjuntos de datos una de ensayo y otro de test.
 
 ```{r eval=FALSE}
 str(Nile) # vemos la serie de Nile
@@ -1898,7 +1908,7 @@ autoplot(fc1,PI=F) + autolayer(fc2,PI=F,col="red") + autolayer(test)
 ```
 
 # REGRESION DINÁMICA
-La regreesión dinámica incorpora al conocimiento de los modelos relaciones de la serie temporal con otras series, ajustando los datos sgún la correlación que exista entre ellas. Se incorpora de esta manera información adicional
+La regresión dinámica incorpora al conocimiento de los modelos relaciones de la serie temporal con otras series, ajustando los datos según la correlación que exista entre ellas. Se incorpora de esta manera información adicional
 
 La función `auto.arima()` que ajusta un modelo de regresión puede incorporar información adicional de otras series que se aporta como parámetro adicional con el el argumento `xreg` que contiene una matriz de variables de regresión. 
 
@@ -1953,9 +1963,9 @@ También puede modelar la demanda de electricidad diaria en función de la tempe
 En este ejercicio, se ajustará a un modelo de regresión cuadrática con un error ARMA. Un año de datos diarios se almacenan como elec, incluida la demanda diaria total, una variable indicadora para los días de trabajo (un día de trabajo se representa con 1, y un día no laborable se representa con 0) y las temperaturas máximas diarias. Como hay estacionalidad semanal, la frecuencia se ha establecido en 7.
 
 
-Vamos a ver otro ejemplo de ajuste dinámico, en los datos de demanda electrica y temperatura. Como es sabido, cuando hace calor se enchufa el aire acondicionado, y cuando hace frio la calefacci´n, por lo que la demanda de energía guarda cierta relación física con la temperatura.
+Vamos a ver otro ejemplo de ajuste dinámico, en los datos de demanda eléctrica y temperatura. Como es sabido, cuando hace calor se enchufa el aire acondicionado, y cuando hace frió la calefacción, por lo que la demanda de energía guarda cierta relación física con la temperatura.
 
-Tenemos un fichero que continen un año de datos diarios de demanda, temperatura y si es o no un dia normal o festivo almacenados en `elec.csv`
+Tenemos un fichero que contienen un año de datos diarios de demanda, temperatura y si es o no un día normal o festivo almacenados en `elec.csv`
 
 ```{r eval=FALSE}
     elec<-read.csv("elec.csv",sep = ";")
@@ -1980,15 +1990,15 @@ Tenemos un fichero que continen un año de datos diarios de demanda, temperatura
 ```
 
 # FOURIER 
-Cuando tenemos serie cíclicas y estacionales la predicción se hace más compleja y debemos recurrir a la transformada de Fourier. Un video interesante para informarse sobre el tema es este <https://www.youtube.com/watch?v=FjmwwDHT98c>. Las transformadas de Fourier también son utiles en series estacionales dificiles de detectar como en series diarias de datos con estacionalidad mensual, en las que hay muchos datos y la estacionalidad es lejana o de frecuencias . La regresión armónica que usa senos y cosenos puede ser una solución para modelizar estas series.
+Cuando tenemos serie cíclicas y estacionales la predicción se hace más compleja y debemos recurrir a la transformada de Fourier. Un vídeo interesante para informarse sobre el tema es este <https://www.youtube.com/watch?v=FjmwwDHT98c>. Las transformadas de Fourier también son útiles en series estacionales difíciles de detectar como en series diarias de datos con estacionalidad mensual, en las que hay muchos datos y la estacionalidad es lejana o de frecuencias . La regresión armónica que usa senos y cosenos puede ser una solución para modelizar estas series.
 
 Antes vamos a ver unas cuestiones técnicas. Llamamos frecuencia a la magnitud temporal del ciclo, y periodo o periodo de retorno (T) al inverso de la frecuencia.
 
 La función `fourier(x,K,h=NULL))` facilita la generación de los armónicos necesarios. Cuanto mayor sea el orden (K), más "ondulado" será el patrón estacional. Con K = 1, es una curva sinusoidal simple. Puede seleccionar el valor de K minimizando el valor del estimador del error **AICc**.
 
-Vamos a ver un ejemplo de predicción de demanda electrica dependinte de la temperatura. Es facilpensar que a mayor temperatura más aires acondicionados y más demanda electrica, y a menor temperatura en invierno tambien por calefacción.
+Vamos a ver un ejemplo de predicción de demanda eléctrica dependiente de la temperatura. Es fácil pensar que a mayor temperatura más aires acondicionados y más demanda eléctrica, y a menor temperatura en invierno también por calefacción.
 
-Los datos de demanda están en un fichero csv en formato tabla por año y mes que hay primero que tranasforar.
+Los datos de demanda están en un fichero csv en formato tabla por año y mes que hay primero que transformar.
 
 ```{r eval=FALSE}
     elec<-read.csv("elec.csv",sep = ";")
@@ -2036,7 +2046,7 @@ autoplot(fc)
 checkresiduals(fit)
 ```
 
-Veamos otro ejemplo de serie de fourier. Por desgracia en la versión de R con la que he realizado el manual no funciona correctamente la función fourier, por lo que tan solo xpongo el código sin ejecutarlo.
+Veamos otro ejemplo de serie de fourier. Por desgracia en la versión de R con la que he realizado el manual no funciona correctamente la función fourier, por lo que tan solo expongo el código sin ejecutarlo.
 
 ```{r eval=FALSE}
     # Plot the calls data
@@ -2065,7 +2075,7 @@ Veamos otro ejemplo de serie de fourier. Por desgracia en la versión de R con l
 Otro de los modelos de predicción del paquete `forecast` es el tbats (*Exponential smoothing state space model with Box-Cox transformation, ARMA errors, Trend and Seasonal component*). Se trata de un tipo especial de modelo de predicción de series temporales que puede ser muy lento de estimar, especialmente con varias series temporales estacionales, pero muy completo, esto es que es apropiado para series complejas, en las que hay cambios de varianza y tendencia apreciables.
 
 ### Ejemplo Gas
-Tenemos un fichero csv, con los datos de producción de gas mensual en Australia.En este ejemplo priemro leeremos el fichero y lo transformaremos en uno limpio sobre el que podamos leer datos, ya que el original contienen datos en tablas por meses y necesitamos con estos datos hacer una serie temporal. Una vez transformado pintaremos la gráfica y vemos que la varianza de la serie ha cambiado mucho con el tiempo, por lo que necesita una transformación. La estacionalidad también ha cambiado de forma con el tiempo, y hay una fuerte tendencia. Esto lo convierte en una serie ideal para probar la función `tbats()` que está diseñada para manejar estas características.
+Tenemos un fichero csv, con los datos de producción de gas mensual en Australia.En este ejemplo primero leeremos el fichero y lo transformaremos en uno limpio sobre el que podamos leer datos, ya que el original contienen datos en tablas por meses y necesitamos con estos datos hacer una serie temporal. Una vez transformado pintaremos la gráfica y vemos que la varianza de la serie ha cambiado mucho con el tiempo, por lo que necesita una transformación. La estacionalidad también ha cambiado de forma con el tiempo, y hay una fuerte tendencia. Esto lo convierte en una serie ideal para probar la función `tbats()` que está diseñada para manejar estas características.
 
 ```{r eval=FALSE}
     # LEEMOS Y LIMPIAMOS LOS DATOS
